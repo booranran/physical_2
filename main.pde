@@ -1,63 +1,92 @@
 import java.util.Collections;
 import processing.serial.*;
 
-Serial myPort;
-
 void setup() {
-  size(600, 400);
+  size(1280, 720, P3D);
+  background(#fafafa);
+  textureMode(NORMAL);
 
-  println(Serial.list());
-  myPort = new Serial(this, Serial.list()[2], 9600);
-  myPort.bufferUntil('\n');
+  textAlign(CENTER, CENTER);
+  textSize(30);
+
+
+  connectArduino();
 
   yesButton = new Button(150, 250, 100, 40, "YES", -1);
   noButton = new Button(350, 250, 100, 40, "NO", -1);
 
-  font = loadFont("GmarketSansMedium.vlw");
+  players = new Player[2];
+  players[0] = new Player(1, "Player 1", 800000);
+  players[1] = new Player(2, "Player 2", 400000);
+
+  p = players[0];
+
+  //font = loadFont("GmarketSansMedium.vlw");
+  font = createFont("GmarketSansMedium.otf", 48); // 48은 폰트 크기
   textFont(font);
 
-  uidNameMap.put("837186A9", "TAG_MARRY_001");
-  uidNameMap.put("BD950E05", "TAG_JOB_001");
-  uidNameMap.put("73624496", "TAG_JOB_002");
-  uidNameMap.put("D31C6A96", "TAG_INVEST_001");
-  uidNameMap.put("23892303", "TAG_INVEST_002");
-  uidNameMap.put("E5AE0905", "TAG_HOME_001");
-  uidNameMap.put("53251696", "TAG_HOME_002");
-  uidNameMap.put("B3A4CC95", "TAG_RANDOM_EVENT_001");
-  uidNameMap.put("731CE995", "TAG_RANDOM_EVENT_002");
-  uidNameMap.put("D3D14E96", "TAG_RANDOM_EVENT_003");
-  uidNameMap.put("13D94CA9", "TAG_GOAL");
+  uidNameMap.put("41103480", new RfidInfo("TAG_MARRY_001", 0));
+  uidNameMap.put("95363480", new RfidInfo ("TAG_JOB_001", 1));
+  uidNameMap.put("1E7b3480", new RfidInfo("TAG_JOB_002", 2));
+  uidNameMap.put("0A493680", new RfidInfo("TAG_INVEST_001", 3));
+  uidNameMap.put("E3563680", new RfidInfo("TAG_INVEST_002", 4));
+  uidNameMap.put("D6793480", new RfidInfo("TAG_HOME_001", 5));
+  uidNameMap.put("7EF63380", new RfidInfo ("TAG_HOME_002", 6));
+  uidNameMap.put("719B3580", new RfidInfo ("TAG_RANDOM_EVENT_001", 7));
+  uidNameMap.put("83113580", new RfidInfo ("TAG_RANDOM_EVENT_002", 8));
+  uidNameMap.put("9A4B3480", new RfidInfo("TAG_RANDOM_EVENT_003", 9));
+  uidNameMap.put("FD143480", new RfidInfo ("TAG_GOAL", 10));
+  uidNameMap.put("D9583680", new RfidInfo("LISBON", 11));
+  uidNameMap.put("9B553680", new RfidInfo("MADRID", 12));
+  uidNameMap.put("BA6C3680", new RfidInfo("HAWAII", 13));
+  uidNameMap.put("9E483480", new RfidInfo("SYDNEY", 14));
+  uidNameMap.put("0B343680", new RfidInfo("NEWYORK", 15));
+  uidNameMap.put("E23F3580", new RfidInfo("TOKYO", 16));
+  uidNameMap.put("E9253680", new RfidInfo("PARIS", 17));
+  uidNameMap.put("0B653680", new RfidInfo("ROME", 18));
+  uidNameMap.put("D3103580", new RfidInfo("SEOUL", 19));
+  uidNameMap.put("12654F05", new RfidInfo("SALARY", 20));
+  uidNameMap.put("BORAN5", new RfidInfo("ISLAND", 21));
+  uidNameMap.put("BORAN6", new RfidInfo("EVENT", 22));
+  uidNameMap.put("BORAN7", new RfidInfo("SPACE", 23));
 
   if (showGoalPopup) {
     displayGoalResult();
   }
+
+  showDice = false;
+  showGoalPopup = false;
+  showEventPopup = false;
 }
 
 void draw() {
   // 시리얼 데이터 수신
-  while (myPort != null && myPort.available() > 0) {
-    println("디버그: 시리얼 데이터 존재 확인됨");
+  //while (myPort != null && myPort.available() > 0) {
+  //  println("디버그: 시리얼 데이터 존재 확인됨");
 
-    String inData = myPort.readStringUntil('\n');
-    if (inData != null) {
-      inData = trim(inData);
-      println("디버그: 수신된 원본 데이터 = [" + inData + "]");
+  //  String inData = myPort.readStringUntil('\n');
+  //  if (inData != null) {
+  //    inData = trim(inData);
+  //    println("디버그: 수신된 원본 데이터 = [" + inData + "]");
 
-      if (!inData.equals("")) {
-        handleSerialData(inData);
-      }
-    } else {
-      println("디버그: readStringUntil이 null 반환");
-    }
-  }
+  //    if (!inData.equals("")) {
+  //      handleSerialData(inData);
+  //    }
+  //  } else {
+  //    println("디버그: readStringUntil이 null 반환");
+  //  }
+  //}
 
+  background(255);
 
   // 기존 그리기 코드
-  background(255);
-  textAlign(CENTER);
-  fill(0);
-  textSize(20);
-  text("현재 자산: " + money + "원", width/2, 100);
+
+  if (defalutPopup) {
+    textAlign(CENTER);
+    fill(0);
+    textSize(20);
+    text(p.name + "의 현재 자산: " + p.money + "원", width/2, 100);
+  }
 
   if (showMarriagePopup) {
     fill(230);
@@ -66,6 +95,14 @@ void draw() {
     text("결혼하시겠습니까?", width/2, 190);
     yesButton.display();
     noButton.display();
+    defalutPopup = false;
+    
+    if(millis() - resultShowTime > 2000){
+      resultShowTime = -1;
+      defalutPopup = true;
+      nextTurn();
+    }
+
   }
 
   if (showHiredPopup) {
@@ -115,6 +152,11 @@ void draw() {
     }
   }
 
+  if (showEventPopup) {
+    triggerRandomEvent();
+    showEventPopup = false;
+  }
+
   if (showGoalPopup) {
     fill(0);
     background(255);
@@ -133,32 +175,17 @@ void draw() {
   }
 }
 
-void handleSerialData(String raw) {
-  String cleaned = raw.replaceAll("\\s+", "").toUpperCase();
-  println("수신: [" + cleaned + "]");
 
-  String tagName = uidNameMap.get(cleaned);
-  if (tagName != null) {
-    println("태그 이벤트 처리: " + tagName);
-    processTagEvent(tagName);
-  } else {
-    println("색상 코드 처리: " + cleaned);
-    processColorEvent(cleaned);
-  }
-}
+//void handleSerialData(String raw) {
+//  String cleaned = raw.replaceAll("\\s+", "").toUpperCase();
+//  println("수신: [" + cleaned + "]");
 
-void initJobButtons() {
-  ArrayList<Integer> indices = new ArrayList<Integer>();
-  for (int i = 0; i < jobs.length; i++) indices.add(i);
-  Collections.shuffle(indices);
-  jobButtons.add(new Button(150, 250, 120, 40, jobs[indices.get(0)], indices.get(0)));
-  jobButtons.add(new Button(350, 250, 120, 40, jobs[indices.get(1)], indices.get(1)));
-}
-
-void initHomeButtons() {
-  ArrayList<Integer> indices = new ArrayList<Integer>();
-  for (int i = 0; i < homeOptions.length; i++) indices.add(i);
-  Collections.shuffle(indices);
-  homeButtons.add(new Button(150, 250, 120, 40, homeOptions[indices.get(0)], indices.get(0)));
-  homeButtons.add(new Button(350, 250, 120, 40, homeOptions[indices.get(1)], indices.get(1)));
-}
+//  String tagName = uidNameMap.get(cleaned);
+//  if (tagName != null) {
+//    println("태그 이벤트 처리: " + tagName);
+//    processTagEvent(tagName);
+//  } else {
+//    println("색상 코드 처리: " + cleaned);
+//    processColorEvent(cleaned);
+//  }
+//}
