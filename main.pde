@@ -9,11 +9,13 @@ void setup() {
   textAlign(CENTER, CENTER);
   textSize(30);
 
-
-  connectArduino();
+  //connectArduino();
 
   yesButton = new Button(150, 250, 100, 40, "YES", -1);
   noButton = new Button(350, 250, 100, 40, "NO", -1);
+  
+  rollButton = new Button(width/2 - 100, 600, 200, 60, "ROLL", -1);
+  initDice();
 
   players = new Player[2];
   players[0] = new Player(1, "Player 1", 800000);
@@ -60,22 +62,6 @@ void setup() {
 }
 
 void draw() {
-  // 시리얼 데이터 수신
-  //while (myPort != null && myPort.available() > 0) {
-  //  println("디버그: 시리얼 데이터 존재 확인됨");
-
-  //  String inData = myPort.readStringUntil('\n');
-  //  if (inData != null) {
-  //    inData = trim(inData);
-  //    println("디버그: 수신된 원본 데이터 = [" + inData + "]");
-
-  //    if (!inData.equals("")) {
-  //      handleSerialData(inData);
-  //    }
-  //  } else {
-  //    println("디버그: readStringUntil이 null 반환");
-  //  }
-  //}
 
   background(255);
 
@@ -86,6 +72,10 @@ void draw() {
     fill(0);
     textSize(20);
     text(p.name + "의 현재 자산: " + p.money + "원", width/2, 100);
+    
+    if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup && !showHomePopup && !showGoalPopup) {
+       rollButton.display();
+    }
   }
 
   if (showMarriagePopup) {
@@ -173,19 +163,10 @@ void draw() {
   if (!resultMessage.equals("") && millis() - resultShowTime < 2000) {
     text(resultMessage, width/2, 250);
   }
+  
+  if (showDice) {
+    drawDiceOverlay();
+    println("주사위 그리는 중... 프레임: " + frameCount); // 디버깅용
+  }
+  
 }
-
-
-//void handleSerialData(String raw) {
-//  String cleaned = raw.replaceAll("\\s+", "").toUpperCase();
-//  println("수신: [" + cleaned + "]");
-
-//  String tagName = uidNameMap.get(cleaned);
-//  if (tagName != null) {
-//    println("태그 이벤트 처리: " + tagName);
-//    processTagEvent(tagName);
-//  } else {
-//    println("색상 코드 처리: " + cleaned);
-//    processColorEvent(cleaned);
-//  }
-//}

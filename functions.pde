@@ -17,27 +17,19 @@ Player nextTurn() {
 
 void mousePressed() {
 
-  //if (mouseX > 20 && mouseX < 120 && mouseY > 20 && mouseY < 70 && !rolling) {
-  //  rolling = true;
-  //  rollFrameCount = 10;
-  //  fallY = -200;
-  //  velocityY = 0;
-  //  rollEnded = true;
+  println("Mouse Clicked at: " + mouseX + ", " + mouseY);
 
-  //  // 초기 회전값: 무작위 굴림
-  //  angleX = random(PI);
-  //  angleY = random(0);
-  //}
-
-  // if (mouseX > 20 && mouseX < 120 && mouseY > 80 && mouseY < 130) {
-  //  sendResetCommand();
-  //}
-
-  //// 재연결 버튼 (20,140)-(120,190)
-  //if (mouseX > 20 && mouseX < 120 && mouseY > 140 && mouseY < 190) {
-  //  connectArduino();
-  //}
-
+  if (rollButton != null) {
+    if (rollButton.isMouseOver()) {
+      println(">> ROLL 버튼 클릭됨! (현재 showDice 상태: " + showDice + ")");
+      if (!showDice) {
+        startRoll();
+        return;
+      }
+    }
+  } else {
+    println("!! 에러: rollButton이 초기화되지 않았습니다 (null)");
+  }
 
   if (showMarriagePopup) {
     if (yesButton.isMouseOver()) {
@@ -48,13 +40,11 @@ void mousePressed() {
       resultMessage = "결혼 완료! 축의금 " + gift + "원, 비용 " + cost + "원";
       resultShowTime = millis();  // 현재 시간 저장
       showMarriagePopup = false;
-      
     } else if (noButton.isMouseOver()) {
-     // println(resultShowTime);
+      // println(resultShowTime);
       resultMessage = "결혼 취소";
       resultShowTime = millis();
       showMarriagePopup = false;
-      
     }
   }
 

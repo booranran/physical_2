@@ -63,8 +63,9 @@ int goalMsgStartTime = 0;
 int goalMsgInterval = 2000;  // 2초 간격
 
 Button yesButton, noButton;
-PFont font;
+Button rollButton;
 
+PFont font;
 Player[] players;
 int currentPlayer = 0;
 
