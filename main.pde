@@ -123,27 +123,48 @@ void draw() {
     int gap = 30;
 
     // 자산 정보
-    text("💰 자산: " + nfc(p.money) + "원", 40, startY);
+    text("자산: " + nfc(p.money) + "원", 40, startY);
 
     // 직업 정보
     String jobText = p.isHired ? p.currentJob : "무직 (취준생)";
-    text("💼 직업: " + jobText, 40, startY + gap);
+    text("직업: " + jobText, 40, startY + gap);
 
     // 월급 정보
     if (p.isHired) {
-      text("💵 월급: " + nfc(p.currentSalary) + "원", 40, startY + gap*2);
+      text("월급: " + nfc(p.currentSalary) + "원", 40, startY + gap*2);
     }
 
     // 결혼 여부
-    String marryText = p.isMarried ? "기혼 💍" : "미혼";
-    text("❤️ 상태: " + marryText, 40, startY + gap*3);
+    String marryText = p.isMarried ? "기혼" : "미혼";
+    text("상태: " + marryText, 40, startY + gap*3);
 
     popStyle();
     // ------------------------------------------------
 
     // 롤 버튼 표시
-    if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup && !showHomePopup && !showGoalPopup) {
+    if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup
+      && !showHomePopup && !showGoalPopup && resultShowTime == -1) {
       rollButton.display();
+    }
+    if (resultShowTime != -1) {
+      // 1. 메시지 큼직하게 출력 (화면 중앙 하단)
+      fill(0);
+      textSize(28);
+      textAlign(CENTER);
+      text(resultMessage, 800, 600);
+
+      // 2. 2초가 지났는지 체크
+      if (millis() - resultShowTime > 2000) {
+        resultShowTime = -1;  // 타이머 리셋
+        resultMessage = "";   // 메시지 지우기
+
+        // ★ 여기서 턴을 넘깁니다! (모든 상황 통일)
+        println(">> 턴 종료. 다음 플레이어로 변경.");
+        nextTurn();
+      }
+    }
+    if (showDice) {
+      drawDiceOverlay();
     }
   }
 
@@ -151,7 +172,7 @@ void draw() {
   if (showMarriagePopup) {
 
     fill(0);
-    text("결혼하시겠습니까?", messageX, messageY); // 텍스트 x좌표 messageX
+    text("결혼하시겠습니까?", messageX, messageY);
     yesButton.display();
     noButton.display();
     defalutPopup = false;

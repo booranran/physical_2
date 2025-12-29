@@ -104,8 +104,6 @@ void handleDicePhysics() {
       p.position = (p.position + diceNumber) % 24; // 24칸을 넘어가면 0부터 다시 시작
       println(p.name + " 위치 이동 -> " + p.position + " (" + boardMap[p.position] + ")");
 
-      processBoardIndex(p.position);
-
       systemStatus = "주사위 " + diceNumber + " 전송 완료";
     }
   }
@@ -116,9 +114,12 @@ void handleDicePhysics() {
       diceEndTimerStarted = true;
     }
 
-    if (millis() - diceEndTime > 3000) {
+    if (millis() - diceEndTime > 1500) {
       showDice = false;
       diceEndTimerStarted = false;  // 다음 주사위 굴림을 위해 초기화
+
+      println(">> 3초 경과! 팝업 실행");
+      processBoardIndex(p.position);
     }
   }
 }
