@@ -98,11 +98,7 @@ void draw() {
 
   // 1. 기본 상태 (자산 표시 & 롤 버튼)
   if (defalutPopup) {
-    // ------------------------------------------------
-    // [플레이어 상태창 UI 그리기]
-    // ------------------------------------------------
     pushStyle();
-
     // 2) 플레이어 이름 (헤더)
     fill(50, 50, 150);
     textSize(28);
@@ -149,16 +145,14 @@ void draw() {
     if (resultShowTime != -1) {
       // 1. 메시지 큼직하게 출력 (화면 중앙 하단)
       fill(0);
-      textSize(28);
+      textSize(20);
       textAlign(CENTER);
-      text(resultMessage, 800, 600);
+      text(resultMessage, 800, height/2);
 
       // 2. 2초가 지났는지 체크
       if (millis() - resultShowTime > 2000) {
         resultShowTime = -1;  // 타이머 리셋
         resultMessage = "";   // 메시지 지우기
-
-        // ★ 여기서 턴을 넘깁니다! (모든 상황 통일)
         println(">> 턴 종료. 다음 플레이어로 변경.");
         nextTurn();
       }
@@ -180,7 +174,6 @@ void draw() {
     if (millis() - resultShowTime > 2000) {
       resultShowTime = -1;
       defalutPopup = true;
-      nextTurn();
     }
   }
 
@@ -208,7 +201,6 @@ void draw() {
 
   // 6. 부동산 구매 팝업
   if (showHomePopup) {
-
     fill(0);
     text("부동산을 구매하시겠습니까?", messageX, messageY);
     yesButton.display();
@@ -218,7 +210,6 @@ void draw() {
   // 7. 부동산 선택 창
   if (isSelectingHome) {
     if (homeButtons.isEmpty()) initHomeButtons();
-
     fill(0);
     for (Button btn : homeButtons) btn.display();
   }
@@ -243,13 +234,9 @@ void draw() {
     }
   }
 
-  // 10. 결과 메시지 (하단)
-  if (!resultMessage.equals("") && millis() - resultShowTime < 2000) {
-    fill(0); // 글씨 색상 검정
-    text(resultMessage, messageX, 400); // 위치를 조금 더 아래(400)로 내림
-  }
-
   if (showDice) {
+    lights();
     drawDiceOverlay();
+    noLights();
   }
 }

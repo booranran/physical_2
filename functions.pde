@@ -1,15 +1,40 @@
 Player nextTurn() {
-  // 현재 플레이어를 다음으로 넘기는 코드
-  int nextPlayerIndex = (currentPlayer + 1) % players.length;
+  int attempts = 0; // 무한루프 방지용
+  int originalPlayer = currentPlayer;
 
-  // 다음 플레이어가 무인도에 갇혔으면 그 다음 플레이어로 넘어감
+  // 다음 플레이어가 아직 게임 중(안 끝남)일 때까지 계속 찾기
+  do {
+    currentPlayer = (currentPlayer + 1) % players.length;
+    p = players[currentPlayer];
+    attempts++;
+  } while (p.isFinished && attempts < players.length); // 끝난 사람은 패스!
 
-  // 최종적으로 플레이할 플레이어로 업데이트
-  currentPlayer = nextPlayerIndex;
-  p = players[currentPlayer];
-  println("Now it's " + p.name + "'s turn!");
+  // 2. 모든 플레이어가 골인했는지 확인
+  boolean allFinished = true;
+  
+  for (Player player : players) {
+    if (!player.isFinished) {
+      allFinished = false;
+      break;
+    }
+  }
 
-  return p;
+  if (allFinished) {
+    println(">> [GAME OVER] 모든 플레이어 완주! 게임을 종료합니다.");
+    // 여기서 최종 랭킹을 보여주거나 게임 종료 화면으로 전환
+    showGoalPopup = true; // 최종 결과창 유지
+    return p;
+  }
+
+
+  if (p.isFinished) {
+    // 이론상 여기까지 오면 안 되지만(위 do-while에서 걸러짐), 혹시 모르니 체크
+    println(">> 에러: 모든 플레이어가 끝난 것 같은데 루프를 탈출함.");
+    return p;
+  } else {
+    println(">> 턴 변경: " + p.name + " (현재 " + (currentPlayer+1) + "P)");
+    return p;
+  }
 }
 
 void initBoardPositions() {
@@ -32,54 +57,55 @@ void initBoardPositions() {
     float bx = 0, by = 0;
     float bw = 0, bh = 0;
 
-    if (i == 0) { 
+    if (i == 0) {
       // [0] 좌상단 (Start)
-      bx = startX; by = startY; 
-      bw = cornerSize; bh = cornerSize;
-    } 
-    else if (i >= 1 && i <= 6) { 
+      bx = startX;
+      by = startY;
+      bw = cornerSize;
+      bh = cornerSize;
+    } else if (i >= 1 && i <= 6) {
       // [1~6] 상단 (좌->우)
       bx = startX + cornerSize + (i - 1) * cellW;
       by = startY;
-      bw = cellW; bh = cornerSize;
-    } 
-    else if (i == 7) { 
+      bw = cellW;
+      bh = cornerSize;
+    } else if (i == 7) {
       // [7] 우상단 코너
       bx = startX + boardW - cornerSize;
       by = startY;
-      bw = cornerSize; bh = cornerSize;
-    } 
-    else if (i >= 8 && i <= 11) { 
+      bw = cornerSize;
+      bh = cornerSize;
+    } else if (i >= 8 && i <= 11) {
       // [8~11] 우측 (상->하)
       bx = startX + boardW - cornerSize;
       by = startY + cornerSize + (i - 8) * cellW; // cellH 대신 정사각형 가정 cellW 사용
-      bw = cornerSize; bh = cellW;
-    } 
-    else if (i == 12) { 
+      bw = cornerSize;
+      bh = cellW;
+    } else if (i == 12) {
       // [12] 우하단 코너
       bx = startX + boardW - cornerSize;
       by = startY + boardH - cornerSize;
-      bw = cornerSize; bh = cornerSize;
-    } 
-    else if (i >= 13 && i <= 18) { 
+      bw = cornerSize;
+      bh = cornerSize;
+    } else if (i >= 13 && i <= 18) {
       // [13~18] 하단 (우->좌)
       bx = (startX + boardW - cornerSize) - cellW - (i - 13) * cellW;
       by = startY + boardH - cornerSize;
-      bw = cellW; bh = cornerSize;
-    } 
-    else if (i == 19) { 
+      bw = cellW;
+      bh = cornerSize;
+    } else if (i == 19) {
       // [19] 좌하단 코너
       bx = startX;
       by = startY + boardH - cornerSize;
-      bw = cornerSize; bh = cornerSize;
-    } 
-    else if (i >= 20 && i <= 23) { 
+      bw = cornerSize;
+      bh = cornerSize;
+    } else if (i >= 20 && i <= 23) {
       // [20~23] 좌측 (하->상)
       bx = startX;
       by = (startY + boardH - cornerSize) - cellW - (i - 20) * cellW;
-      bw = cornerSize; bh = cellW;
+      bw = cornerSize;
+      bh = cellW;
     }
-
     // 중심 좌표 저장
     boardPositions[i] = new PVector(bx + bw / 2.0, by + bh / 2.0);
   }
@@ -90,23 +116,30 @@ void drawPlayers() {
     p.updateAndDraw();
   }
 }
-// [추가] 플레이어가 시각적으로 목적지에 도착했을 때 호출되는 함수
+
 void handlePlayerArrival(int playerId) {
-  // 1. 도착한 플레이어 객체 찾기
-  // (배열은 0부터 시작하니까 id가 1이면 index는 0)
-  Player p = players[playerId - 1];
-
-  println("플레이어 " + playerId + " 도착 완료! 이벤트 실행.");
-
-  // 2. 해당 위치의 이벤트(팝업) 실행하기
-  // 기존에 있던 processBoardIndex 함수를 여기서 호출하는 거야
-  processBoardIndex(p.position);
+  Player arrivedPlayer = players[playerId - 1];
+  println("플레이어 " + playerId + " 골인!");
+  
+  // 1. 도착한 플레이어 완주 처리
+  arrivedPlayer.isFinished = true;
+  
+  // 2. 개인 결과(자산 정산) 보여주기
+  // (이 함수는 해당 플레이어의 자산을 계산해서 goalMessages를 채워줍니다)
+  p = arrivedPlayer; // 현재 포커스를 도착한 사람으로 잠시 맞춤
+  displayGoalResult(); 
+  showGoalPopup = true;
+  
+  // 3. ★ 중요: 여기서 바로 턴을 넘기지 말고, 
+  // "결과창 확인" 버튼을 누르거나 3초 뒤에 자동으로 넘어가게 해야 합니다.
+  // main.pde의 draw()에서 resultShowTime 로직이 이걸 처리해줄 겁니다.
+  
+  resultMessage = arrivedPlayer.name + " 완주! 잠시 후 다음 턴으로 넘어갑니다.";
+  resultShowTime = millis(); // 2초 뒤에 nextTurn() 자동 실행됨
 }
 
 
 void mousePressed() {
-
-  println("Mouse Clicked at: " + mouseX + ", " + mouseY);
 
   if (rollButton != null) {
     if (rollButton.isMouseOver()) {
@@ -151,16 +184,11 @@ void mousePressed() {
         resultShowTime = millis();
         showHiredPopup = false;
 
-        nextTurn();
-
-
         jobButtons.clear();
         break;
       }
     }
   }
-
-
 
   if (showInvestPopup) {
     if (yesButton.isMouseOver()) {
@@ -171,31 +199,23 @@ void mousePressed() {
       } else if (currentInvestItem == 1) {
         currentInvestItem = 2;  // 두 번째 투자
       }
-      nextTurn();
 
       showInvestPopup = false;
       println("YES clicked → isEnteringInvestment=" + isEnteringInvestment + ", showInvestPopup=" + showInvestPopup);
     } else if (noButton.isMouseOver()) {
       resultMessage = "투자 취소";
       resultShowTime = millis();
-      nextTurn();
-
       showInvestPopup = false;
     }
   }
 
   if (showHomePopup) {
-
     if (yesButton.isMouseOver()) {
       isSelectingHome = true;
-      nextTurn();
-
       showHomePopup = false;
     } else if (noButton.isMouseOver()) {
       resultMessage = "부동산 구매 취소";
       resultShowTime = millis();
-      nextTurn();
-
       showHomePopup = false;
     }
   }
@@ -206,13 +226,12 @@ void mousePressed() {
         int price = homePrice[btn.idx];
         if (canAfford(price)) {
           p.money -= price;
-          purchasedHomePrice = price;
-          purchasedHomeName = btn.label;
+          p.myHomePrice = price;
+          p.myHomeName = btn.label;
           resultMessage = btn.label + " 구매 완료! -" + price + "원";
           nextTurn();
         } else {
           resultMessage = "돈이 부족합니다! 구매 실패.";
-          nextTurn();
         }
         resultShowTime = millis();
         isSelectingHome = false;
@@ -320,22 +339,21 @@ void displayGoalResult() {
   goalMessages.add("당신의 투자 결과는: " + investResult + "원");
 
   // 부동산 가치 (각 부동산에 대해 30% +30, 20% -30)
-  if (purchasedHomePrice > 0) {
+  if (p.myHomePrice > 0) {
     int homeResult = 0;
     float r = random(1);
     if (r < 0.3) {
-      homeResult = int(purchasedHomePrice * 0.3);  // 30% 상승
+      homeResult = int(p.myHomePrice * 0.3);  // 30% 상승
     } else if (r < 0.5) {
-      homeResult = -int(purchasedHomePrice * 0.3);  // 30% 하락
+      homeResult = -int(p.myHomePrice * 0.3);  // 30% 하락
     } else {
       homeResult = 0;  // 변동 없음
     }
-    goalMessages.add("당신의 " + purchasedHomeName + " 부동산 가치는: " + homeResult + "원");
+    goalMessages.add("당신의 " + p.myHomeName + " 부동산 가치는: " + homeResult + "원");
   } else {
     goalMessages.add("구매한 부동산이 없습니다.");
   }
-
-  p.UR_Goal = true;
+  //p.UR_Goal = true;
 }
 
 void triggerRandomEvent() {
@@ -347,7 +365,6 @@ void triggerRandomEvent() {
   resultMessage = e.description + " (" + e.moneyChange + "원)";
   resultShowTime = millis();
 
-  // 디버그 출력
   println("랜덤 이벤트: " + resultMessage);
 }
 
@@ -373,48 +390,39 @@ void showResult(String msg) {
 // [추가] 위치 인덱스(0~23)에 따라 이벤트를 실행하는 함수
 void processBoardIndex(int index) {
   String locationName = boardMap[index];
-  
+
   if (locationName == null) {
     println("Error: 해당 인덱스에 매핑된 지역이 없습니다 (" + index + ")");
     return;
   }
-  
+
   println("이벤트 실행: " + locationName);
-  
+
   // 각 지역 이름에 맞춰 팝업 띄우기
   if (locationName.equals("TAG_MARRY_001")) {
     showMarriagePopup = true;
-  } 
-  else if (locationName.startsWith("TAG_JOB")) {
+  } else if (locationName.startsWith("TAG_JOB")) {
     showHiredPopup = true;
-  } 
-  else if (locationName.startsWith("TAG_INVEST")) {
+  } else if (locationName.startsWith("TAG_INVEST")) {
     showInvestPopup = true;
-  } 
-  else if (locationName.startsWith("TAG_HOME")) {
+  } else if (locationName.startsWith("TAG_HOME")) {
     showHomePopup = true;
-  } 
-  else if (locationName.startsWith("TAG_RANDOM_EVENT") || locationName.equals("EVENT")) {
+  } else if (locationName.startsWith("TAG_RANDOM_EVENT") || locationName.equals("EVENT")) {
     showEventPopup = true;
-  } 
-  else if (locationName.equals("TAG_GOAL")) {
-    showGoalPopup = true;
-  } 
-  else if (locationName.equals("SALARY")) {
+  } else if (locationName.equals("TAG_GOAL")) {
+    println("골 지점 이벤트 발생");
+  } else if (locationName.equals("SALARY")) {
     processSalary();
-  } 
-  else if (locationName.equals("ISLAND")) {
+  } else if (locationName.equals("ISLAND")) {
     p.isIslanded = true;
     showResult("무인도에 갇혔습니다! (3턴 휴식)");
-  } 
-  else if (locationName.equals("SPACE")) {
+  } else if (locationName.equals("SPACE")) {
     showResult("우주여행! (다음 턴에 원하는 곳으로 이동)");
-  }
-  else {
+  } else {
     // 그 외 일반 도시들 (LISBON, SEOUL 등)
     showResult(locationName + "에 도착했습니다.");
     // 만약 도시에서도 땅을 살 수 있게 하려면 아래 주석 해제
-    // showHomePopup = true; 
+    // showHomePopup = true;
   }
 }
 
@@ -436,5 +444,7 @@ void keyTyped() {
     processTagEvent("BORAN6");
   } else if (key == '8') {
     processTagEvent("BORAN7");
+  } else if (key == '9') {
+    processTagEvent("TAG_GOAL");
   }
 }

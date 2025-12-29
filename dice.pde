@@ -46,12 +46,11 @@ void startRoll() {
 }
 
 void drawDiceOverlay() {
+  pushStyle();
   pushMatrix();
-  translate(width/2, height/2 + fallY, 200); // 화면 중앙으로 이동
-
-  // 조명 설정
+  translate(messageX, messageY, 0); // 화면 중앙으로 이동
   ambientLight(150, 150, 150);
-  directionalLight(255, 255, 255, -0.5, 0.5, -1);
+  directionalLight(100, 255, 255, -0.5, 0.5, -1);
 
   // 회전 적용
   if (rolling) {
@@ -65,6 +64,7 @@ void drawDiceOverlay() {
   noStroke();
   drawTextureCube(50); // 큐브 그리기
   popMatrix();
+  popStyle();
 
   handleDicePhysics(); // 물리 계산 업데이트
 }

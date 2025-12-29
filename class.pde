@@ -69,7 +69,6 @@ class Player {
   boolean isMoving = false;
   float moveSpeed = 0.1;
   
-
   //결혼 관련 변수
   boolean isMarried = false; //상태값
   boolean UR_Married = false; //중복 방지용
@@ -93,18 +92,19 @@ class Player {
   boolean UR_Home_01 = false;
   boolean isHome_02 = false;
   boolean UR_Home_02 = false;
-
+  
+  int myHomePrice = 0;
+  String myHomeName = "";
+  
   boolean isgoal = true;
   boolean UR_Goal = true;
-
-
-  ArrayList<String> ownedCountries = new ArrayList<String>();
+  boolean isFinished = false;
 
   Player(int id, String name, int startMoney) {
     this.id = id;
     this.name = name;
     this.money = startMoney;
-    
+    this.isFinished = false;
      // ★★★ [중요] 이 줄이 없으면 무조건 널포인트 에러 남! ★★★
     this.pathQueue = new ArrayList<PVector>(); 
     
@@ -112,6 +112,8 @@ class Player {
     this.visualX = 0;
     this.visualY = 0;
     
+    this.myHomePrice = 0;
+    this.myHomeName = "";   
   }
   
   void updateAndDraw() {
