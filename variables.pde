@@ -36,12 +36,9 @@ boolean showInvestPopup = false;
 
 String investInput = "";
 boolean isEnteringInvestment = false;
-
 int currentInvestItem = 0;
 
-
 boolean showHomePopup = false;
-
 int purchasedHomePrice = 0;  // 구매한 집 가격 저장
 String purchasedHomeName = "";  // 구매한 집 이름 저장
 
@@ -61,6 +58,36 @@ boolean showEventPopup = false;
 
 //골 관련 변수
 boolean showGoalPopup = false;
+
+//바베큐 파티 관련 변수
+boolean showBBQPopup = false;
+
+//출산 관련 변수
+boolean showBirthPopup = false;
+
+//연금 지불 관련 변수
+boolean showPensionPopup = false;
+
+//재난 관련 변수
+boolean showDisasterPopup = false;
+
+//경마 관련 변수
+boolean showRacingPopup = false;
+
+//강도 관련 변수
+boolean showRobbingPopup = false;
+
+//지갑 관련 변수
+boolean showWalletPopup = false;
+
+//쌍둥이 관련 변수
+boolean showTwinPopup = false;
+
+//이혼 관련 변수
+boolean showDivorcePopup = false;
+
+//책 출간 관련 변수
+boolean showBookPopup = false;
 
 ArrayList<String> goalMessages = new ArrayList<String>();
 int goalMsgIndex = 0;

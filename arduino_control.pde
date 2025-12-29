@@ -99,7 +99,6 @@ void processTagEvent(String uid) {
   } else if (uid.equals("TAG_RANDOM_EVENT_001") || uid.equals("TAG_RANDOM_EVENT_002") ||  uid.equals("TAG_RANDOM_EVENT_003")) {
     showEventPopup = true;
   } else if (uid.equals("TAG_GOAL")) {
-    displayGoalResult();
     showGoalPopup = true;
   } else {
     println("알 수 없는 태그");

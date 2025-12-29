@@ -11,7 +11,7 @@ Player nextTurn() {
 
   // 2. 모든 플레이어가 골인했는지 확인
   boolean allFinished = true;
-  
+
   for (Player player : players) {
     if (!player.isFinished) {
       allFinished = false;
@@ -120,22 +120,8 @@ void drawPlayers() {
 void handlePlayerArrival(int playerId) {
   Player arrivedPlayer = players[playerId - 1];
   println("플레이어 " + playerId + " 골인!");
-  
-  // 1. 도착한 플레이어 완주 처리
-  arrivedPlayer.isFinished = true;
-  
-  // 2. 개인 결과(자산 정산) 보여주기
-  // (이 함수는 해당 플레이어의 자산을 계산해서 goalMessages를 채워줍니다)
   p = arrivedPlayer; // 현재 포커스를 도착한 사람으로 잠시 맞춤
-  displayGoalResult(); 
-  showGoalPopup = true;
-  
-  // 3. ★ 중요: 여기서 바로 턴을 넘기지 말고, 
-  // "결과창 확인" 버튼을 누르거나 3초 뒤에 자동으로 넘어가게 해야 합니다.
-  // main.pde의 draw()에서 resultShowTime 로직이 이걸 처리해줄 겁니다.
-  
-  resultMessage = arrivedPlayer.name + " 완주! 잠시 후 다음 턴으로 넘어갑니다.";
-  resultShowTime = millis(); // 2초 뒤에 nextTurn() 자동 실행됨
+  processBoardIndex(p.position);
 }
 
 
@@ -170,8 +156,6 @@ void mousePressed() {
     }
   }
 
-  Button selectedButton = null;
-
   if (showHiredPopup) {
     for (Button btn : jobButtons) {
       if (btn.isMouseOver()) {
@@ -199,7 +183,6 @@ void mousePressed() {
       } else if (currentInvestItem == 1) {
         currentInvestItem = 2;  // 두 번째 투자
       }
-
       showInvestPopup = false;
       println("YES clicked → isEnteringInvestment=" + isEnteringInvestment + ", showInvestPopup=" + showInvestPopup);
     } else if (noButton.isMouseOver()) {
@@ -229,7 +212,6 @@ void mousePressed() {
           p.myHomePrice = price;
           p.myHomeName = btn.label;
           resultMessage = btn.label + " 구매 완료! -" + price + "원";
-          nextTurn();
         } else {
           resultMessage = "돈이 부족합니다! 구매 실패.";
         }
@@ -349,7 +331,9 @@ void displayGoalResult() {
     } else {
       homeResult = 0;  // 변동 없음
     }
-    goalMessages.add("당신의 " + p.myHomeName + " 부동산 가치는: " + homeResult + "원");
+    
+    int finalPrice = p.myHomePrice + homeResult;
+    goalMessages.add("당신의 " + p.myHomeName + " 부동산 가치는: " + finalPrice + "원");
   } else {
     goalMessages.add("구매한 부동산이 없습니다.");
   }
@@ -388,63 +372,65 @@ void showResult(String msg) {
 }
 
 // [추가] 위치 인덱스(0~23)에 따라 이벤트를 실행하는 함수
-void processBoardIndex(int index) {
-  String locationName = boardMap[index];
+//void processBoardIndex(int index) {
+//  String locationName = boardMap[index];
 
-  if (locationName == null) {
-    println("Error: 해당 인덱스에 매핑된 지역이 없습니다 (" + index + ")");
-    return;
-  }
+//  if (locationName == null) {
+//    println("Error: 해당 인덱스에 매핑된 지역이 없습니다 (" + index + ")");
+//    return;
+//  }
+//  println("이벤트 실행: " + locationName);
 
-  println("이벤트 실행: " + locationName);
+//  // 각 지역 이름에 맞춰 팝업 띄우기
+//  if (locationName.equals("TAG_MARRY_001")) {
+//    showMarriagePopup = true;
+//  } else if (locationName.startsWith("TAG_JOB")) {
+//    showHiredPopup = true;
+//  } else if (locationName.startsWith("TAG_INVEST")) {
+//    showInvestPopup = true;
+//  } else if (locationName.startsWith("TAG_HOME")) {
+//    showHomePopup = true;
+//  } else if (locationName.startsWith("TAG_RANDOM_EVENT") || locationName.equals("EVENT")) {
+//    showEventPopup = true;
+//  } else if (locationName.equals("TAG_GOAL")) {
+//    println("골 지점 이벤트 발생");
+//    p.isFinished = true;
+//    displayGoalResult();
+//    showGoalPopup = true;
+    
+//    resultMessage = p.name + " 완주! 잠시 후 다음 턴으로 넘어갑니다.";
+//    resultShowTime = millis();
+//  } else if (locationName.equals("SALARY")) {
+//    processSalary();
+//  } else if (locationName.equals("ISLAND")) {
+//    p.isIslanded = true;
+//    showResult("무인도에 갇혔습니다! (3턴 휴식)");
+//  } else if (locationName.equals("SPACE")) {
+//    showResult("우주여행! (다음 턴에 원하는 곳으로 이동)");
+//  } else {
+//    showResult(locationName + "에 도착했습니다.");
+//  }
+//}
 
-  // 각 지역 이름에 맞춰 팝업 띄우기
-  if (locationName.equals("TAG_MARRY_001")) {
-    showMarriagePopup = true;
-  } else if (locationName.startsWith("TAG_JOB")) {
-    showHiredPopup = true;
-  } else if (locationName.startsWith("TAG_INVEST")) {
-    showInvestPopup = true;
-  } else if (locationName.startsWith("TAG_HOME")) {
-    showHomePopup = true;
-  } else if (locationName.startsWith("TAG_RANDOM_EVENT") || locationName.equals("EVENT")) {
-    showEventPopup = true;
-  } else if (locationName.equals("TAG_GOAL")) {
-    println("골 지점 이벤트 발생");
-  } else if (locationName.equals("SALARY")) {
-    processSalary();
-  } else if (locationName.equals("ISLAND")) {
-    p.isIslanded = true;
-    showResult("무인도에 갇혔습니다! (3턴 휴식)");
-  } else if (locationName.equals("SPACE")) {
-    showResult("우주여행! (다음 턴에 원하는 곳으로 이동)");
-  } else {
-    // 그 외 일반 도시들 (LISBON, SEOUL 등)
-    showResult(locationName + "에 도착했습니다.");
-    // 만약 도시에서도 땅을 살 수 있게 하려면 아래 주석 해제
-    // showHomePopup = true;
-  }
-}
 
-
-void keyTyped() {
-  if (key == '1') {
-    processTagEvent("TAG_JOB_001"); // 베이징 태그
-  } else if (key == '2') {
-    processTagEvent("TAG_JOB_002"); // 이스탄불  태그
-  } else if (key=='3') {
-    processTagEvent("TAG_MARRY_001");
-  } else if (key=='4') {
-    processTagEvent("E3563680");
-  } else if (key=='5') {
-    processTagEvent("12654F05");
-  } else if (key=='6') {
-    processTagEvent("BORAN5");
-  } else if (key=='7') {
-    processTagEvent("BORAN6");
-  } else if (key == '8') {
-    processTagEvent("BORAN7");
-  } else if (key == '9') {
-    processTagEvent("TAG_GOAL");
-  }
-}
+//void keyTyped() {
+//  if (key == '1') {
+//    processTagEvent("TAG_JOB_001"); // 베이징 태그
+//  } else if (key == '2') {
+//    processTagEvent("TAG_JOB_002"); // 이스탄불  태그
+//  } else if (key=='3') {
+//    processTagEvent("TAG_MARRY_001");
+//  } else if (key=='4') {
+//    processTagEvent("D6793480");
+//  } else if (key=='5') {
+//    processTagEvent("12654F05");
+//  } else if (key=='6') {
+//    processTagEvent("BORAN5");
+//  } else if (key=='7') {
+//    processTagEvent("BORAN6");
+//  } else if (key == '8') {
+//    processTagEvent("BORAN7");
+//  } else if (key == '9') {
+//    processTagEvent("FD143480");
+//  }
+//}
