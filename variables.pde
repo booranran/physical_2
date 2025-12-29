@@ -16,9 +16,11 @@ boolean showDice = true;
 
 String[] boardMap = new String[24];
 HashMap<String, RfidInfo> uidNameMap = new HashMap<String, RfidInfo>(); //rfid uid 저장
+Button[] boardButtons;
 
 boolean defalutPopup = true;
 
+PVector[] boardPositions = new PVector[24];
 PImage boardImage;
 
 

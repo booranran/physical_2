@@ -12,7 +12,96 @@ Player nextTurn() {
   return p;
 }
 
+void initBoardPositions() {
+  // 1. 레이아웃 설정 (Monopoly 코드와 동일한 8x6 구조)
+  int sidebarWidth = 320; // 사이드바 너비 (왼쪽 여백)
+  int cornerSize = 110;   // 코너 크기
+  int cellW = 100;        // 일반 칸 너비
+  int cellH = 100;        // 일반 칸 높이 (필요시)
 
+  // 전체 보드 크기: 820 x 620
+  int boardW = (cornerSize * 2) + (cellW * 6);
+  int boardH = (cornerSize * 2) + (cellW * 4);
+
+  // 화면 내 위치 잡기 (왼쪽 사이드바를 제외한 나머지 공간의 중앙)
+  int startX = sidebarWidth + (width - sidebarWidth - boardW) / 2;
+  int startY = (height - boardH) / 2;
+
+  // 2. 24개 칸 좌표 계산
+  for (int i = 0; i < 24; i++) {
+    float bx = 0, by = 0;
+    float bw = 0, bh = 0;
+
+    if (i == 0) { 
+      // [0] 좌상단 (Start)
+      bx = startX; by = startY; 
+      bw = cornerSize; bh = cornerSize;
+    } 
+    else if (i >= 1 && i <= 6) { 
+      // [1~6] 상단 (좌->우)
+      bx = startX + cornerSize + (i - 1) * cellW;
+      by = startY;
+      bw = cellW; bh = cornerSize;
+    } 
+    else if (i == 7) { 
+      // [7] 우상단 코너
+      bx = startX + boardW - cornerSize;
+      by = startY;
+      bw = cornerSize; bh = cornerSize;
+    } 
+    else if (i >= 8 && i <= 11) { 
+      // [8~11] 우측 (상->하)
+      bx = startX + boardW - cornerSize;
+      by = startY + cornerSize + (i - 8) * cellW; // cellH 대신 정사각형 가정 cellW 사용
+      bw = cornerSize; bh = cellW;
+    } 
+    else if (i == 12) { 
+      // [12] 우하단 코너
+      bx = startX + boardW - cornerSize;
+      by = startY + boardH - cornerSize;
+      bw = cornerSize; bh = cornerSize;
+    } 
+    else if (i >= 13 && i <= 18) { 
+      // [13~18] 하단 (우->좌)
+      bx = (startX + boardW - cornerSize) - cellW - (i - 13) * cellW;
+      by = startY + boardH - cornerSize;
+      bw = cellW; bh = cornerSize;
+    } 
+    else if (i == 19) { 
+      // [19] 좌하단 코너
+      bx = startX;
+      by = startY + boardH - cornerSize;
+      bw = cornerSize; bh = cornerSize;
+    } 
+    else if (i >= 20 && i <= 23) { 
+      // [20~23] 좌측 (하->상)
+      bx = startX;
+      by = (startY + boardH - cornerSize) - cellW - (i - 20) * cellW;
+      bw = cornerSize; bh = cellW;
+    }
+
+    // 중심 좌표 저장
+    boardPositions[i] = new PVector(bx + bw / 2.0, by + bh / 2.0);
+  }
+}
+
+void drawPlayers() {
+  for (Player p : players) {
+    p.updateAndDraw();
+  }
+}
+// [추가] 플레이어가 시각적으로 목적지에 도착했을 때 호출되는 함수
+void handlePlayerArrival(int playerId) {
+  // 1. 도착한 플레이어 객체 찾기
+  // (배열은 0부터 시작하니까 id가 1이면 index는 0)
+  Player p = players[playerId - 1];
+
+  println("플레이어 " + playerId + " 도착 완료! 이벤트 실행.");
+
+  // 2. 해당 위치의 이벤트(팝업) 실행하기
+  // 기존에 있던 processBoardIndex 함수를 여기서 호출하는 거야
+  processBoardIndex(p.position);
+}
 
 
 void mousePressed() {
@@ -142,16 +231,16 @@ void initJobButtons() {
   ArrayList<Integer> indices = new ArrayList<Integer>();
   for (int i = 0; i < jobs.length; i++) indices.add(i);
   Collections.shuffle(indices);
-  jobButtons.add(new Button(150, 250, 120, 40, jobs[indices.get(0)], indices.get(0)));
-  jobButtons.add(new Button(350, 250, 120, 40, jobs[indices.get(1)], indices.get(1)));
+  jobButtons.add(new Button(50, 200, 100, 40, jobs[indices.get(0)], indices.get(0)));
+  jobButtons.add(new Button(170, 200, 100, 40, jobs[indices.get(1)], indices.get(1)));
 }
 
 void initHomeButtons() {
   ArrayList<Integer> indices = new ArrayList<Integer>();
   for (int i = 0; i < homeOptions.length; i++) indices.add(i);
   Collections.shuffle(indices);
-  homeButtons.add(new Button(150, 250, 120, 40, homeOptions[indices.get(0)], indices.get(0)));
-  homeButtons.add(new Button(350, 250, 120, 40, homeOptions[indices.get(1)], indices.get(1)));
+  homeButtons.add(new Button(50, 200, 100, 40, homeOptions[indices.get(0)], indices.get(0)));
+  homeButtons.add(new Button(170, 200, 100, 40, homeOptions[indices.get(1)], indices.get(1)));
 }
 
 

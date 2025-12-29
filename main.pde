@@ -5,7 +5,7 @@ void setup() {
   size(1280, 720, P3D);
   background(#fafafa);
   textureMode(NORMAL);
-  
+
   boardImage = loadImage("board.png"); // data 폴더에 이미지 넣어야 함
 
 
@@ -14,19 +14,18 @@ void setup() {
 
   //connectArduino();
 
-  yesButton = new Button(150, 250, 100, 40, "YES", -1);
-  noButton = new Button(350, 250, 100, 40, "NO", -1);
-  
-  rollButton = new Button(width/2 - 100, 600, 200, 60, "ROLL", -1);
+  yesButton = new Button(50, 230, 100, 40, "YES", -1);
+  noButton = new Button(170, 230, 100, 40, "NO", -1);
+  rollButton = new Button(60, 600, 200, 60, "ROLL", -1);
+
   initDice();
 
   players = new Player[2];
   players[0] = new Player(1, "Player 1", 800000);
-  players[1] = new Player(2, "Player 2", 400000);
+  players[1] = new Player(2, "Player 2", 800000);
 
   p = players[0];
 
-  //font = loadFont("GmarketSansMedium.vlw");
   font = createFont("GmarketSansMedium.otf", 48); // 48은 폰트 크기
   textFont(font);
 
@@ -54,13 +53,14 @@ void setup() {
   uidNameMap.put("BORAN5", new RfidInfo("ISLAND", 21));
   uidNameMap.put("BORAN6", new RfidInfo("EVENT", 22));
   uidNameMap.put("BORAN7", new RfidInfo("SPACE", 23));
-  
+
   for (RfidInfo info : uidNameMap.values()) {
     if (info.boardIndex >= 0 && info.boardIndex < 24) {
       boardMap[info.boardIndex] = info.name;
     }
   }
-  
+  initBoardPositions();
+
 
   if (showGoalPopup) {
     displayGoalResult();
@@ -75,108 +75,129 @@ void draw() {
 
   background(255);
 
+  if (boardImage != null) {
+    // initBoardPositions에서 계산한 boardW, boardH, startX, startY 값과 동일하게
+    int sidebarWidth = 320;
+    int boardW = 820;
+    int boardH = 620;
+    int startX = sidebarWidth + (width - sidebarWidth - boardW) / 2;
+    int startY = (height - boardH) / 2;
+
+    image(boardImage, startX, startY, boardW, boardH);
+  }
+
+  // ★ [추가] 그 위에 말 그리기
+
+
   // 기존 그리기 코드
 
+  // [main.pde]의 draw() 내부 수정
+
+  // 1. 기본 상태 (자산 표시 & 롤 버튼)
   if (defalutPopup) {
     textAlign(CENTER);
     fill(0);
     textSize(20);
-    text(p.name + "의 현재 자산: " + p.money + "원", width/2, 100);
-    
+    // width/2 -> 160으로 변경 (왼쪽 사이드바 상단)
+    text(p.name + "의 현재 자산: " + p.money + "원", 160, 100);
+
     if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup && !showHomePopup && !showGoalPopup) {
-       rollButton.display();
+      rollButton.display();
     }
   }
 
+  // 2. 결혼 팝업
   if (showMarriagePopup) {
     fill(230);
-    rect(100, 150, 400, 150, 10);
+    // 위치(10, 150), 크기(300, 150)으로 조정 -> 사이드바 안에 쏙 들어감
+    rect(10, 150, 300, 150, 10);
     fill(0);
-    text("결혼하시겠습니까?", width/2, 190);
+    text("결혼하시겠습니까?", 160, 190); // 텍스트 x좌표 160
     yesButton.display();
     noButton.display();
     defalutPopup = false;
-    
-    if(millis() - resultShowTime > 2000){
+
+    if (millis() - resultShowTime > 2000) {
       resultShowTime = -1;
       defalutPopup = true;
       nextTurn();
     }
-
   }
 
+  // 3. 직업(취업) 팝업
   if (showHiredPopup) {
-    if (jobButtons.isEmpty()) {
-      initJobButtons();
-    }
+    if (jobButtons.isEmpty()) initJobButtons();
     fill(230);
-    rect(100, 150, 400, 150, 10);
+    rect(10, 150, 300, 150, 10); // 왼쪽으로 이동
     fill(0);
-    drawJobButtons();
+    drawJobButtons(); // (주의: 버튼 위치도 initJobButtons에서 바꿔야 함)
   }
 
+  // 4. 투자 팝업
   if (showInvestPopup) {
     fill(230);
-    rect(100, 150, 400, 150, 10);
+    rect(10, 150, 300, 150, 10);
     fill(0);
-    text("투자 하시겠습니까?", width/2, 190);
+    text("투자 하시겠습니까?", 160, 190);
     yesButton.display();
     noButton.display();
   }
 
+  // 5. 투자금 입력창
   if (isEnteringInvestment) {
     fill(230);
-    rect(100, 150, 400, 150, 10);
+    rect(10, 150, 300, 150, 10);
     fill(0);
-    text("투자금 입력: " + investInput, width/2, 150);
+    text("투자금 입력: " + investInput, 160, 190);
   }
 
+  // 6. 부동산 구매 팝업
   if (showHomePopup) {
     fill(230);
-    rect(100, 150, 400, 150, 10);
+    rect(10, 150, 300, 150, 10);
     fill(0);
-    text("부동산을 구매 하시겠습니까?", width/2, 190);
+    text("부동산을 구매하시겠습니까?", 160, 190);
     yesButton.display();
     noButton.display();
   }
 
+  // 7. 부동산 선택 창
   if (isSelectingHome) {
-    if (homeButtons.isEmpty()) {
-      initHomeButtons();
-    }
+    if (homeButtons.isEmpty()) initHomeButtons();
     fill(230);
-    rect(100, 150, 400, 150, 10);
+    rect(10, 150, 300, 150, 10);
     fill(0);
-    for (Button btn : homeButtons) {
-      btn.display();
-    }
+    for (Button btn : homeButtons) btn.display();
   }
 
+  // 8. 랜덤 이벤트
   if (showEventPopup) {
     triggerRandomEvent();
     showEventPopup = false;
   }
 
+  // 9. 목표(정산) 화면
   if (showGoalPopup) {
+    fill(255);
+    rect(0, 0, 320, height); // 왼쪽 사이드바만 하얗게 덮기
     fill(0);
-    background(255);
     for (int i = 0; i <= goalMsgIndex && i < goalMessages.size(); i++) {
-      text(goalMessages.get(i), width/2, 100 + i * 30);
+      text(goalMessages.get(i), 160, 100 + i * 30); // x좌표 160
     }
-
     if (millis() - goalMsgStartTime > 1000) {
       goalMsgIndex++;
       goalMsgStartTime = millis();
     }
   }
 
+  // 10. 결과 메시지 (하단)
   if (!resultMessage.equals("") && millis() - resultShowTime < 2000) {
-    text(resultMessage, width/2, 250);
+    fill(0); // 글씨 색상 검정
+    text(resultMessage, 160, 400); // 위치를 조금 더 아래(400)로 내림
   }
-  
+
   if (showDice) {
     drawDiceOverlay();
     println("주사위 그리는 중... 프레임: " + frameCount); // 디버깅용
   }
-  
 }
