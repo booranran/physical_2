@@ -14,12 +14,12 @@ void setup() {
 
   //connectArduino();
 
-  yesButton = new Button(300, 260, 100, 40, "YES", -1);
-  noButton = new Button(300, 260, 100, 40, "NO", -1);
+  yesButton = new Button(730, 400, 100, 40, "YES", -1);
+  noButton = new Button(870, 400, 100, 40, "NO", -1);
   rollButton = new Button(60, 600, 200, 60, "ROLL", -1);
 
-  messageX = 160;
-  messageY = 300;
+  messageX = 800;
+  messageY = 360;
 
   initDice();
 
@@ -107,7 +107,7 @@ void draw() {
     fill(50, 50, 150);
     textSize(28);
     textAlign(CENTER, TOP);
-    text(p.name, messageX, 40); // 박스 상단 중앙
+    text(p.name, 160, 40); // 박스 상단 중앙
 
     // 3) 구분선
     stroke(150);

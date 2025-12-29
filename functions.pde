@@ -231,16 +231,16 @@ void initJobButtons() {
   ArrayList<Integer> indices = new ArrayList<Integer>();
   for (int i = 0; i < jobs.length; i++) indices.add(i);
   Collections.shuffle(indices);
-  jobButtons.add(new Button(50, 200, 100, 40, jobs[indices.get(0)], indices.get(0)));
-  jobButtons.add(new Button(170, 200, 100, 40, jobs[indices.get(1)], indices.get(1)));
+  jobButtons.add(new Button(700, 360, 100, 40, jobs[indices.get(0)], indices.get(0)));
+  jobButtons.add(new Button(870, 360, 100, 40, jobs[indices.get(1)], indices.get(1)));
 }
 
 void initHomeButtons() {
   ArrayList<Integer> indices = new ArrayList<Integer>();
   for (int i = 0; i < homeOptions.length; i++) indices.add(i);
   Collections.shuffle(indices);
-  homeButtons.add(new Button(50, 200, 100, 40, homeOptions[indices.get(0)], indices.get(0)));
-  homeButtons.add(new Button(170, 200, 100, 40, homeOptions[indices.get(1)], indices.get(1)));
+  homeButtons.add(new Button(700, 360, 100, 40, homeOptions[indices.get(0)], indices.get(0)));
+  homeButtons.add(new Button(870, 360, 100, 40, homeOptions[indices.get(1)], indices.get(1)));
 }
 
 
