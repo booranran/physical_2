@@ -5,6 +5,9 @@ void setup() {
   size(1280, 720, P3D);
   background(#fafafa);
   textureMode(NORMAL);
+  
+  boardImage = loadImage("board.png"); // data 폴더에 이미지 넣어야 함
+
 
   textAlign(CENTER, CENTER);
   textSize(30);
@@ -51,6 +54,13 @@ void setup() {
   uidNameMap.put("BORAN5", new RfidInfo("ISLAND", 21));
   uidNameMap.put("BORAN6", new RfidInfo("EVENT", 22));
   uidNameMap.put("BORAN7", new RfidInfo("SPACE", 23));
+  
+  for (RfidInfo info : uidNameMap.values()) {
+    if (info.boardIndex >= 0 && info.boardIndex < 24) {
+      boardMap[info.boardIndex] = info.name;
+    }
+  }
+  
 
   if (showGoalPopup) {
     displayGoalResult();

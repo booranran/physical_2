@@ -14,9 +14,12 @@ int errorCount = 0;
 boolean newDataFlag = false;
 boolean showDice = true;
 
+String[] boardMap = new String[24];
 HashMap<String, RfidInfo> uidNameMap = new HashMap<String, RfidInfo>(); //rfid uid 저장
 
 boolean defalutPopup = true;
+
+PImage boardImage;
 
 
 //취직 관련 변수

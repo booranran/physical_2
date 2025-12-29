@@ -281,6 +281,55 @@ void showResult(String msg) {
   resultShowTime = millis();
 }
 
+// [추가] 위치 인덱스(0~23)에 따라 이벤트를 실행하는 함수
+void processBoardIndex(int index) {
+  String locationName = boardMap[index];
+  
+  if (locationName == null) {
+    println("Error: 해당 인덱스에 매핑된 지역이 없습니다 (" + index + ")");
+    return;
+  }
+  
+  println("이벤트 실행: " + locationName);
+  
+  // 각 지역 이름에 맞춰 팝업 띄우기
+  if (locationName.equals("TAG_MARRY_001")) {
+    showMarriagePopup = true;
+  } 
+  else if (locationName.startsWith("TAG_JOB")) {
+    showHiredPopup = true;
+  } 
+  else if (locationName.startsWith("TAG_INVEST")) {
+    showInvestPopup = true;
+  } 
+  else if (locationName.startsWith("TAG_HOME")) {
+    showHomePopup = true;
+  } 
+  else if (locationName.startsWith("TAG_RANDOM_EVENT") || locationName.equals("EVENT")) {
+    showEventPopup = true;
+  } 
+  else if (locationName.equals("TAG_GOAL")) {
+    showGoalPopup = true;
+  } 
+  else if (locationName.equals("SALARY")) {
+    processSalary();
+  } 
+  else if (locationName.equals("ISLAND")) {
+    p.isIslanded = true;
+    showResult("무인도에 갇혔습니다! (3턴 휴식)");
+  } 
+  else if (locationName.equals("SPACE")) {
+    showResult("우주여행! (다음 턴에 원하는 곳으로 이동)");
+  }
+  else {
+    // 그 외 일반 도시들 (LISBON, SEOUL 등)
+    showResult(locationName + "에 도착했습니다.");
+    // 만약 도시에서도 땅을 살 수 있게 하려면 아래 주석 해제
+    // showHomePopup = true; 
+  }
+}
+
+
 void keyTyped() {
   if (key == '1') {
     processTagEvent("TAG_JOB_001"); // 베이징 태그

@@ -17,9 +17,9 @@ PImage[] diceTexture = new PImage[6];
 boolean diceEndTimerStarted = false;  // 딜레이 타이머 시작 플래그
 
 void initDice() {
-  for(int i=0; i<6; i++) {
+  for (int i=0; i<6; i++) {
     // data 폴더에 dice1.png ~ dice6.png가 있어야 합니다.
-    diceTexture[i] = loadImage("dice"+(i+1)+".png"); 
+    diceTexture[i] = loadImage("dice"+(i+1)+".png");
   }
   // 각 숫자에 맞는 회전 각도 설정
   targetAngles[0] = new PVector(-HALF_PI, 0); // 1
@@ -36,23 +36,23 @@ void startRoll() {
   rollEnded = false;
   fallY = -200;
   velocityY = 0;
-  
+
   // 초기 랜덤 회전
   angleX = random(PI);
   angleY = random(PI);
   currentAngle.set(0, 0);
-  
+
   showDice = true; // 주사위 보이게 설정
 }
 
 void drawDiceOverlay() {
   pushMatrix();
   translate(width/2, height/2 + fallY, 200); // 화면 중앙으로 이동
-  
+
   // 조명 설정
   ambientLight(150, 150, 150);
   directionalLight(255, 255, 255, -0.5, 0.5, -1);
-  
+
   // 회전 적용
   if (rolling) {
     rotateX(angleX);
@@ -61,11 +61,11 @@ void drawDiceOverlay() {
     rotateX(currentAngle.x);
     rotateY(currentAngle.y);
   }
-  
+
   noStroke();
   drawTextureCube(50); // 큐브 그리기
   popMatrix();
-  
+
   handleDicePhysics(); // 물리 계산 업데이트
 }
 
@@ -100,6 +100,13 @@ void handleDicePhysics() {
       println("주사위 결과: " + diceNumber);
       //myPort.write(diceNumber + "\n");
       systemStatus = "주사위 " + diceNumber + " 전송 완료";
+
+      p.position = (p.position + diceNumber) % 24; // 24칸을 넘어가면 0부터 다시 시작
+      println(p.name + " 위치 이동 -> " + p.position + " (" + boardMap[p.position] + ")");
+
+      processBoardIndex(p.position);
+
+      systemStatus = "주사위 " + diceNumber + " 전송 완료";
     }
   }
 
@@ -108,7 +115,7 @@ void handleDicePhysics() {
       diceEndTime = millis();
       diceEndTimerStarted = false;
     }
-    
+
     if (millis() - diceEndTime > 3000) {
       showDice = true;
       diceEndTimerStarted = false;  // 다음 주사위 굴림을 위해 초기화
