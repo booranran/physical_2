@@ -14,9 +14,12 @@ void setup() {
 
   //connectArduino();
 
-  yesButton = new Button(50, 230, 100, 40, "YES", -1);
-  noButton = new Button(170, 230, 100, 40, "NO", -1);
+  yesButton = new Button(300, 260, 100, 40, "YES", -1);
+  noButton = new Button(300, 260, 100, 40, "NO", -1);
   rollButton = new Button(60, 600, 200, 60, "ROLL", -1);
+
+  messageX = 160;
+  messageY = 300;
 
   initDice();
 
@@ -95,12 +98,50 @@ void draw() {
 
   // 1. 기본 상태 (자산 표시 & 롤 버튼)
   if (defalutPopup) {
-    textAlign(CENTER);
-    fill(0);
-    textSize(20);
-    // width/2 -> 160으로 변경 (왼쪽 사이드바 상단)
-    text(p.name + "의 현재 자산: " + p.money + "원", 160, 100);
+    // ------------------------------------------------
+    // [플레이어 상태창 UI 그리기]
+    // ------------------------------------------------
+    pushStyle();
 
+    // 2) 플레이어 이름 (헤더)
+    fill(50, 50, 150);
+    textSize(28);
+    textAlign(CENTER, TOP);
+    text(p.name, messageX, 40); // 박스 상단 중앙
+
+    // 3) 구분선
+    stroke(150);
+    strokeWeight(1);
+    line(30, 80, 290, 80);
+
+    // 4) 상세 정보 (왼쪽 정렬)
+    fill(0);
+    textSize(18);
+    textAlign(LEFT, TOP);
+
+    int startY = 100;
+    int gap = 30;
+
+    // 자산 정보
+    text("💰 자산: " + nfc(p.money) + "원", 40, startY);
+
+    // 직업 정보
+    String jobText = p.isHired ? p.currentJob : "무직 (취준생)";
+    text("💼 직업: " + jobText, 40, startY + gap);
+
+    // 월급 정보
+    if (p.isHired) {
+      text("💵 월급: " + nfc(p.currentSalary) + "원", 40, startY + gap*2);
+    }
+
+    // 결혼 여부
+    String marryText = p.isMarried ? "기혼 💍" : "미혼";
+    text("❤️ 상태: " + marryText, 40, startY + gap*3);
+
+    popStyle();
+    // ------------------------------------------------
+
+    // 롤 버튼 표시
     if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup && !showHomePopup && !showGoalPopup) {
       rollButton.display();
     }
@@ -108,11 +149,9 @@ void draw() {
 
   // 2. 결혼 팝업
   if (showMarriagePopup) {
-    fill(230);
-    // 위치(10, 150), 크기(300, 150)으로 조정 -> 사이드바 안에 쏙 들어감
-    rect(10, 150, 300, 150, 10);
+
     fill(0);
-    text("결혼하시겠습니까?", 160, 190); // 텍스트 x좌표 160
+    text("결혼하시겠습니까?", messageX, messageY); // 텍스트 x좌표 messageX
     yesButton.display();
     noButton.display();
     defalutPopup = false;
@@ -127,36 +166,30 @@ void draw() {
   // 3. 직업(취업) 팝업
   if (showHiredPopup) {
     if (jobButtons.isEmpty()) initJobButtons();
-    fill(230);
-    rect(10, 150, 300, 150, 10); // 왼쪽으로 이동
     fill(0);
     drawJobButtons(); // (주의: 버튼 위치도 initJobButtons에서 바꿔야 함)
   }
 
   // 4. 투자 팝업
   if (showInvestPopup) {
-    fill(230);
-    rect(10, 150, 300, 150, 10);
     fill(0);
-    text("투자 하시겠습니까?", 160, 190);
+    text("투자 하시겠습니까?", messageX, messageY);
     yesButton.display();
     noButton.display();
   }
 
   // 5. 투자금 입력창
   if (isEnteringInvestment) {
-    fill(230);
-    rect(10, 150, 300, 150, 10);
+
     fill(0);
-    text("투자금 입력: " + investInput, 160, 190);
+    text("투자금 입력: " + investInput, messageX, messageY);
   }
 
   // 6. 부동산 구매 팝업
   if (showHomePopup) {
-    fill(230);
-    rect(10, 150, 300, 150, 10);
+
     fill(0);
-    text("부동산을 구매하시겠습니까?", 160, 190);
+    text("부동산을 구매하시겠습니까?", messageX, messageY);
     yesButton.display();
     noButton.display();
   }
@@ -164,8 +197,7 @@ void draw() {
   // 7. 부동산 선택 창
   if (isSelectingHome) {
     if (homeButtons.isEmpty()) initHomeButtons();
-    fill(230);
-    rect(10, 150, 300, 150, 10);
+
     fill(0);
     for (Button btn : homeButtons) btn.display();
   }
@@ -182,7 +214,7 @@ void draw() {
     rect(0, 0, 320, height); // 왼쪽 사이드바만 하얗게 덮기
     fill(0);
     for (int i = 0; i <= goalMsgIndex && i < goalMessages.size(); i++) {
-      text(goalMessages.get(i), 160, 100 + i * 30); // x좌표 160
+      text(goalMessages.get(i), messageX, 100 + i * 30); // x좌표 160
     }
     if (millis() - goalMsgStartTime > 1000) {
       goalMsgIndex++;
@@ -193,11 +225,10 @@ void draw() {
   // 10. 결과 메시지 (하단)
   if (!resultMessage.equals("") && millis() - resultShowTime < 2000) {
     fill(0); // 글씨 색상 검정
-    text(resultMessage, 160, 400); // 위치를 조금 더 아래(400)로 내림
+    text(resultMessage, messageX, 400); // 위치를 조금 더 아래(400)로 내림
   }
 
   if (showDice) {
     drawDiceOverlay();
-    println("주사위 그리는 중... 프레임: " + frameCount); // 디버깅용
   }
 }

@@ -24,10 +24,11 @@ PVector[] boardPositions = new PVector[24];
 PImage boardImage;
 
 
-//취직 관련 변수
 String[] jobs = {"개발자", "미용사", "스타트업 CEO", "알바"};
 int[] salary = {2000, 1500, 3000, 1000};
 
+int messageX;
+int messageY;
 
 boolean showHiredPopup = false;
 boolean showMarriagePopup = false;
@@ -59,7 +60,6 @@ final int salaryLimit = 3;
 boolean showEventPopup = false;
 
 //골 관련 변수
-
 boolean showGoalPopup = false;
 
 ArrayList<String> goalMessages = new ArrayList<String>();

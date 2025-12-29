@@ -113,11 +113,11 @@ void handleDicePhysics() {
   if (rollEnded && showDice) {
     if (!diceEndTimerStarted) {
       diceEndTime = millis();
-      diceEndTimerStarted = false;
+      diceEndTimerStarted = true;
     }
 
     if (millis() - diceEndTime > 3000) {
-      showDice = true;
+      showDice = false;
       diceEndTimerStarted = false;  // 다음 주사위 굴림을 위해 초기화
     }
   }
