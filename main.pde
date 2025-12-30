@@ -178,8 +178,14 @@ void draw() {
           showGoalPopup = false;
         }
 
-        println(">> 턴 종료. 다음 플레이어로 변경.");
-        nextTurn();
+        if (isTurnChange) {
+          println(">> 턴 종료. 다음 플레이어로 변경.");
+          nextTurn();
+        } else {
+          // 교육비 메시지처럼 턴을 안 넘기는 경우 -> 스위치를 다시 켜두고 게임 진행
+          isTurnChange = true;
+          println(">> 메시지 종료. 현재 플레이어 턴 유지.");
+        }
       }
     }
     if (showDice) {

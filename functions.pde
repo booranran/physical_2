@@ -1,63 +1,75 @@
 Player nextTurn() {
   int attempts = 0; // 무한루프 방지용
-  int originalPlayer = currentPlayer;
+  // int originalPlayer = currentPlayer; // (필요 없음)
 
-  // 다음 플레이어가 아직 게임 중(안 끝남)일 때까지 계속 찾기
+  // 1. 다음 플레이어 찾기 (아직 안 끝난 사람)
   do {
     currentPlayer = (currentPlayer + 1) % players.length;
     p = players[currentPlayer];
     attempts++;
-  } while (p.isFinished && attempts < players.length); // 끝난 사람은 패스!
+  } while (p.isFinished && attempts < players.length);
 
-  // 2. 모든 플레이어가 골인했는지 확인
+  // 2. ★ 핵심 수정: 모든 플레이어가 끝났는지 확인하는 로직 분리
   boolean allFinished = true;
-
   for (Player player : players) {
     if (!player.isFinished) {
       allFinished = false;
-      break;
+      break; // 안 끝난 사람 발견하면 즉시 검사 중단
     }
   }
 
+  // 3. 만약 모두 끝났다면 -> 게임 종료 처리
   if (allFinished) {
     println(">> [GAME OVER] 모든 플레이어 완주! 게임을 종료합니다.");
-    // 여기서 최종 랭킹을 보여주거나 게임 종료 화면으로 전환
-    displayRanking();
-    showGoalPopup = true; // 최종 결과창 유지
+    displayRanking();     // 랭킹 보여주기
+    showGoalPopup = true; // 결과창 띄우기
     return p;
   }
 
+  // 4. 게임이 안 끝났다면 -> 이번 턴 플레이어(p)의 교육비/턴 처리
+  // (이 로직이 for문 밖으로 나와야 합니다!)
+  if (!p.isFinished) {
+    p.turnCount++;
 
-  if (p.isFinished) {
-    // 이론상 여기까지 오면 안 되지만(위 do-while에서 걸러짐), 혹시 모르니 체크
-    println(">> 에러: 모든 플레이어가 끝난 것 같은데 루프를 탈출함.");
-    return p;
-  } else {
-    println(">> 턴 변경: " + p.name + " (현재 " + (currentPlayer+1) + "P)");
-    return p;
+    // 3턴마다 && 자녀가 있을 경우
+    if (p.turnCount % 3 == 0 && p.childCount > 0) {
+      int eduFee = p.childCount * 1000;
+      p.money -= eduFee;
+
+      // 팝업 메시지 설정
+      resultMessage = "[교육비] 자녀 " + p.childCount + "명 교육비 " + eduFee + "원 차감!";
+      resultShowTime = millis();
+
+      // ★ 메시지가 떠 있는 동안 턴 넘어가지 않게 잠금
+      isTurnChange = false;
+    }
   }
+
+  // 5. 턴 변경 완료 로그 및 리턴
+  println(">> 턴 변경: " + p.name + " (현재 " + (currentPlayer+1) + "P)");
+  return p;
 }
 
 void displayRanking() {
   goalMessages.clear();
   goalMsgIndex = 0;
   goalMsgStartTime = millis();
-  
+
   goalMessages.add("=== [최종 경기 결과] ===");
-  
+
   int maxScore = -999999999;
   String winnerName = "";
-  
+
   // 모든 플레이어의 점수를 띄워주고 1등을 찾음
   for (Player player : players) {
     goalMessages.add(player.name + ": " + player.finalScore + "원");
-    
+
     if (player.finalScore > maxScore) {
       maxScore = player.finalScore;
       winnerName = player.name;
     }
   }
-  
+
   goalMessages.add("--------------------------------");
   goalMessages.add("최종 우승: " + winnerName + "!");
 }
@@ -511,15 +523,19 @@ void displayGoalResult() {
   // ----------------------------------------------------------
   // 5. 자녀 양육 보너스 (1명당 1500원)
   // ----------------------------------------------------------
-  int childBonus = p.childCount * 1500;
+  int childBonus = 0;
 
   if (p.childCount > 0) {
-    goalMessages.add("자녀 지원금: " + childBonus + "원 (" + p.childCount + "명 x 1500원)");
+    // ★ 랜덤 금액 책정 (1500원 ~ 5000원 사이)
+    int randomRate = int(random(1500, 5001));
+    childBonus = p.childCount * randomRate;
+
+    goalMessages.add("자녀 지원금: " + childBonus + "원 (" + p.childCount + "명, 인당 " + randomRate + "원)");
   } else {
     goalMessages.add("자녀 지원금 없음");
   }
 
-  finalTotalAsset += childBonus; // ★ 최종 자산에 추가
+  finalTotalAsset += childBonus; // 최종 자산에 추가
 
   // ----------------------------------------------------------
   // 6. 최종 합계 출력
@@ -623,7 +639,20 @@ void processBoardIndex(int index) {
     showResult("재난 발생! 피해 복구비가 나갑니다.");
     p.money -= 1000;
   } else if (locationName.equals("TAG_TAX_OFFICE")) {
-    showResult("국세청입니다. 세금을 납부하세요.");
+    int taxThreshold = 500000; // 기준 금액: 50만원 (이거보다 많으면 부자)
+
+    // 1. 부자일 경우 (세금 납부)
+    if (p.money >= taxThreshold) {
+      int tax = int(p.money * 0.1); // 보유 자산의 10%를 세금으로 징수
+      p.money -= tax;
+      showResult("고소득자 세금 납부! -" + tax + "원 (성실납세 감사)");
+    }
+    // 2. 서민일 경우 (환급금 수령)
+    else {
+      int refund = 50000; // 환급금 5만원 지급
+      p.money += refund;
+      showResult("연말정산 세금 환급! +" + refund + "원 (13월의 월급)");
+    }
   } else if (locationName.equals("TAG_ROBBING")) {
     showResult("강도를 만났습니다! 지갑 조심하세요.");
   } else if (locationName.equals("TAG_WALLET")) {
@@ -652,7 +681,7 @@ void processBoardIndex(int index) {
 
 void keyTyped() {
   if (key == '1') {
-    processTagEvent("7EF63380"); // 베이징 태그
+    processTagEvent("D9583680"); // 베이징 태그
   } else if (key == '2') {
     processTagEvent("BORAN7");
   }

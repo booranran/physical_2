@@ -1,7 +1,6 @@
 
 Client myClient;
 
-
 //Serial myPort;
 String resultMessage = "";
 int resultShowTime = -1;
@@ -26,27 +25,47 @@ PVector[] boardPositions = new PVector[24];
 PImage boardImage;
 
 
-String[] jobs = {"개발자", "미용사", "스타트업 CEO", "알바"};
-int[] salary = {2000, 1500, 3000, 1000};
-
 int messageX;
 int messageY;
 
-boolean showHiredPopup = false;
-boolean showMarriagePopup = false;
-boolean showInvestPopup = false;
+boolean isTurnChange = true;
 
+ArrayList<String> goalMessages = new ArrayList<String>();
+int goalMsgIndex = 0;
+int goalMsgStartTime = 0;
+int goalMsgInterval = 2000;  // 2초 간격
+
+Button yesButton, noButton;
+Button rollButton;
+
+PFont font;
+Player[] players;
+int currentPlayer = 0;
+
+Player p;
+
+
+
+//취업 관련 변수
+boolean showHiredPopup = false;
+String[] jobs = {"개발자", "미용사", "스타트업 CEO", "알바"};
+int[] salary = {2000, 1500, 3000, 1000};
+
+//결혼 관련 변수
+boolean showMarriagePopup = false;
+
+//투자 관련 변수
+boolean showInvestPopup = false;
 String investInput = "";
 boolean isEnteringInvestment = false;
 int currentInvestItem = 0;
 
+//주택 관련 변수 
 boolean showHomePopup = false;
 int purchasedHomePrice = 0;  // 구매한 집 가격 저장
 String purchasedHomeName = "";  // 구매한 집 이름 저장
-
 ArrayList<Button> homeButtons = new ArrayList<Button>();
 boolean isSelectingHome = false;
-
 boolean[] homePurchased = new boolean[4];
 String[] homeOptions = {"아파트", "주택", "빌라", "펜트하우스"};
 int[] homePrice = {50000, 60000, 45000, 100000};
@@ -95,17 +114,3 @@ boolean showDivorcePopup = false;
 
 //책 출간 관련 변수
 boolean showBookPopup = false;
-
-ArrayList<String> goalMessages = new ArrayList<String>();
-int goalMsgIndex = 0;
-int goalMsgStartTime = 0;
-int goalMsgInterval = 2000;  // 2초 간격
-
-Button yesButton, noButton;
-Button rollButton;
-
-PFont font;
-Player[] players;
-int currentPlayer = 0;
-
-Player p;

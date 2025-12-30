@@ -63,6 +63,7 @@ class Player {
   int islandTurns;
   int position;
   int finalScore = 0;
+  int turnCount = 0;
   
     // 시각화 변수
   float visualX, visualY;
@@ -113,6 +114,7 @@ class Player {
     this.isFinished = false;
     this.childCount = 0;
     this.pensionTotal = 0;
+    this.turnCount = 0;
 
     this.pathQueue = new ArrayList<PVector>(); 
     
