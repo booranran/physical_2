@@ -73,6 +73,11 @@ boolean showDisasterPopup = false;
 
 //경마 관련 변수
 boolean showRacingPopup = false;
+boolean isRacing = false;         // 달리는 중인지 체크
+int selectedHorse = -1;           // 내가 선택한 말 번호 (0~4)
+float[] horsePositions = new float[5]; // 말 5마리의 위치 (0 ~ 완주지점)
+int winnerHorse = -1;             // 우승한 말 번호
+ArrayList<Button> raceButtons = new ArrayList<Button>(); // 말 선택 버튼
 
 //강도 관련 변수
 boolean showRobbingPopup = false;

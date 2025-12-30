@@ -32,33 +32,33 @@ void setup() {
   font = createFont("GmarketSansMedium.otf", 48); // 48은 폰트 크기
   textFont(font);
 
-  uidNameMap.put("41103480", new RfidInfo("TAG_BBQ_001", 0));
-  uidNameMap.put("0A493680", new RfidInfo("TAG_INVEST_001", 1));
-  uidNameMap.put("95363480", new RfidInfo ("TAG_CHILDBIRTH", 2));
-  uidNameMap.put("1E7b3480", new RfidInfo("TAG_JOB_001", 3));
-  uidNameMap.put("E3563680", new RfidInfo("TAG_PENSION_001", 4));
-  uidNameMap.put("D6793480", new RfidInfo("TAG_DISASTER", 5));
-  uidNameMap.put("7EF63380", new RfidInfo ("TAG_JAIL", 6));
-  
-  uidNameMap.put("719B3580", new RfidInfo ("TAG_JOB_002", 7));
-  uidNameMap.put("83113580", new RfidInfo ("TAG_MARRY_001", 8));
-  uidNameMap.put("9A4B3480", new RfidInfo("TAG_INVEST_002", 9));
-  uidNameMap.put("FD143480", new RfidInfo ("TAG_HORSE_RACE", 10));
-  uidNameMap.put("D9583680", new RfidInfo("TAG_TAX_OFFICE", 11));
-  
-  uidNameMap.put("9B553680", new RfidInfo("TAG_ROBBING", 12));
-  uidNameMap.put("BA6C3680", new RfidInfo("TAG_JOB_003", 13));
-  uidNameMap.put("9E483480", new RfidInfo("TAG_WALLET", 14));
-  uidNameMap.put("0B343680", new RfidInfo("TAG_HOME_BUY_001", 15));
-  uidNameMap.put("E23F3580", new RfidInfo("TAG_PENSION_002", 16));
-  uidNameMap.put("E9253680", new RfidInfo("TAG_TWINS", 17));
-  uidNameMap.put("0B653680", new RfidInfo("TAG_EVENT", 18));
-  
-  uidNameMap.put("D3103580", new RfidInfo("TAG_INVEST_003", 19));
-  uidNameMap.put("12654F05", new RfidInfo("TAG_HOME_BUY_002", 20));
-  uidNameMap.put("BORAN5", new RfidInfo("TAG_DIVORCE", 21));
-  uidNameMap.put("BORAN6", new RfidInfo("TAG_BOOK", 22));
-  uidNameMap.put("BORAN7", new RfidInfo("TAG_GOAL", 23));
+  uidNameMap.put("41103480", new RfidInfo("TAG_BBQ_001", 1));
+  uidNameMap.put("0A493680", new RfidInfo("TAG_INVEST_001", 2));
+  uidNameMap.put("95363480", new RfidInfo ("TAG_CHILDBIRTH", 3));
+  uidNameMap.put("1E7b3480", new RfidInfo("TAG_JOB_001", 4));
+  uidNameMap.put("E3563680", new RfidInfo("TAG_PENSION_001", 5));
+  uidNameMap.put("D6793480", new RfidInfo("TAG_DISASTER", 6));
+  uidNameMap.put("7EF63380", new RfidInfo ("TAG_JAIL", 7));
+
+  uidNameMap.put("719B3580", new RfidInfo ("TAG_JOB_002", 8));
+  uidNameMap.put("83113580", new RfidInfo ("TAG_MARRY_001", 9));
+  uidNameMap.put("9A4B3480", new RfidInfo("TAG_INVEST_002", 10));
+  uidNameMap.put("FD143480", new RfidInfo ("TAG_HORSE_RACE", 11));
+  uidNameMap.put("D9583680", new RfidInfo("TAG_TAX_OFFICE", 12));
+
+  uidNameMap.put("9B553680", new RfidInfo("TAG_ROBBING", 13));
+  uidNameMap.put("BA6C3680", new RfidInfo("TAG_JOB_003", 14));
+  uidNameMap.put("9E483480", new RfidInfo("TAG_WALLET", 15));
+  uidNameMap.put("0B343680", new RfidInfo("TAG_HOME_BUY_001", 16));
+  uidNameMap.put("E23F3580", new RfidInfo("TAG_PENSION_002", 17));
+  uidNameMap.put("E9253680", new RfidInfo("TAG_TWINS", 18));
+  uidNameMap.put("0B653680", new RfidInfo("TAG_EVENT", 19));
+
+  uidNameMap.put("D3103580", new RfidInfo("TAG_INVEST_003", 20));
+  uidNameMap.put("12654F05", new RfidInfo("TAG_HOME_BUY_002", 21));
+  uidNameMap.put("BORAN5", new RfidInfo("TAG_DIVORCE", 22));
+  uidNameMap.put("BORAN6", new RfidInfo("TAG_BOOK", 23));
+  uidNameMap.put("BORAN7", new RfidInfo("TAG_GOAL", 0));
 
   for (RfidInfo info : uidNameMap.values()) {
     if (info.boardIndex >= 0 && info.boardIndex < 24) {
@@ -135,10 +135,26 @@ void draw() {
 
     popStyle();
     // ------------------------------------------------
-
+    
+    if (p.isIslanded && resultShowTime == -1) {
+      p.islandTurns--; // 1턴 차감
+      
+      // 아직 남은 턴이 있다면 (2, 1, 0) -> 스킵
+      if (p.islandTurns >= 0) {
+        resultMessage = p.name + "님은 수감 중입니다. (남은 턴: " + (p.islandTurns + 1) + ")";
+        resultShowTime = millis(); // 메시지 띄우고 2초 뒤 nextTurn() 자동 실행
+      } 
+      else {
+        // 턴 다 채움 -> 석방!
+        p.isIslanded = false;
+        // 메시지 없이 바로 롤 버튼이 뜨게 하거나, "석방" 메시지를 띄울 수 있음
+        // 여기서는 바로 게임 진행하도록 함
+      }
+    }
+    
     // 롤 버튼 표시
     if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup
-      && !showHomePopup && !showGoalPopup && resultShowTime == -1) {
+      && !showHomePopup && !showGoalPopup && !showRacingPopup && resultShowTime == -1) {
       rollButton.display();
     }
     if (resultShowTime != -1) {
@@ -146,15 +162,13 @@ void draw() {
       fill(0);
       textSize(20);
       textAlign(CENTER);
-    
 
       int waitTime = 2000;
       if (showGoalPopup) {
         waitTime = 5000;  // 골인(파이널) 대기 시간: 10초 (원하는 만큼 늘리세요)
         text(resultMessage, messageX, messageY + 100);
-      }
-      else{
-          text(resultMessage, messageX, messageY);
+      } else {
+        text(resultMessage, messageX, messageY);
       }
 
       // 2. 2초가 지났는지 체크
@@ -164,7 +178,7 @@ void draw() {
 
         // 골인 팝업이 켜져 있었다면 끄기 (다음 사람을 위해)
         if (showGoalPopup) {
-          
+
           showGoalPopup = false;
         }
 
@@ -233,10 +247,14 @@ void draw() {
     triggerRandomEvent();
     showEventPopup = false;
   }
+  
+  if (showRacingPopup) {
+    drawRacingPopup();
+  }
 
   // 9. 목표(정산) 화면
   if (showGoalPopup) {
-    
+
     fill(0);
     for (int i = 0; i <= goalMsgIndex && i < goalMessages.size(); i++) {
       text(goalMessages.get(i), messageX, messageY - 30 + i * 30); // x좌표 160

@@ -124,6 +124,46 @@ void handlePlayerArrival(int playerId) {
   processBoardIndex(p.position);
 }
 
+void drawRacingPopup() {
+  fill(0);
+
+  if (!isRacing) {
+    // 1. 배팅 단계: 말 선택 화면
+    // (텍스트 위치는 messageX, 200이 맞는지 확인해 보세요)
+    textSize(30);
+    text("우승할 말을 선택하세요! (참가비 10만원)", messageX, 200);
+
+    if (raceButtons.isEmpty()) initRaceButtons();
+    for (Button btn : raceButtons) btn.display();
+  } else {
+    // 2. 경주 단계: 달리는 화면
+    textSize(30);
+    text("달려라!!! (내 말: " + (selectedHorse+1) + "번)", messageX, 200);
+
+    // 말 5마리 그리기
+    for (int i = 0; i < 5; i++) {
+      // 트랙 라인
+      stroke(200);
+      strokeWeight(2); // 선 두께 살짝 추가
+      line(350, 250 + (i*60), 950, 250 + (i*60));
+
+      // 말 (네모로 표시)
+      noStroke();
+      if (i == selectedHorse) fill(255, 0, 0); // 내 말은 빨간색
+      else fill(0); // 다른 말은 검은색
+
+      rect(horsePositions[i], 240 + (i*60), 40, 30); // 말 크기
+
+      // 말 번호
+      fill(255);
+      textSize(15);
+      text((i+1), horsePositions[i] + 20, 240 + (i*60) + 15);
+    }
+
+    // 로직 업데이트 호출
+    updateRace();
+  }
+}
 
 void mousePressed() {
 
@@ -223,8 +263,17 @@ void mousePressed() {
       }
     }
   }
-}
+  if (showRacingPopup && !isRacing) { // 달리는 중에는 버튼 못 누름
+    if (raceButtons.isEmpty()) initRaceButtons(); // 버튼 없으면 생성
 
+    for (Button btn : raceButtons) {
+      if (btn.isMouseOver()) {
+        startRace(btn.idx); // 선택한 말로 경주 시작!
+        break;
+      }
+    }
+  }
+}
 
 //---------------------------------------------------------------------
 
@@ -243,6 +292,73 @@ void initHomeButtons() {
   homeButtons.add(new Button(700, 360, 100, 40, homeOptions[indices.get(0)], indices.get(0)));
   homeButtons.add(new Button(870, 360, 100, 40, homeOptions[indices.get(1)], indices.get(1)));
 }
+
+// 1. 경마 버튼 생성 함수
+void initRaceButtons() {
+  raceButtons.clear();
+  int startX = 600; // 버튼 시작 위치 (화면 중앙 쯤)
+  int startY = 250;
+
+  for (int i = 0; i < 5; i++) {
+    // 버튼 5개 생성 (라벨: 1번마, 2번마...)
+    raceButtons.add(new Button(startX, startY + (i * 60), 120, 40, (i+1) + "번 말", i));
+  }
+}
+
+// 2. 경주 시작 세팅 함수
+void startRace(int myChoice) {
+  if (p.money < 100000) {
+    showResult("돈이 부족해서 배팅할 수 없습니다. (필요: 10만원)");
+    showRacingPopup = false;
+    return;
+  }
+
+  p.money -= 100000; // 배팅금 차감
+  selectedHorse = myChoice;
+  isRacing = true;
+  winnerHorse = -1;
+
+  // 말 위치 모두 0으로 초기화
+  for (int i = 0; i < 5; i++) {
+    horsePositions[i] = 350; // 시작 x좌표 (왼쪽)
+  }
+  println(">> 경주 시작! 선택한 말: " + (selectedHorse+1) + "번");
+}
+
+// 3. 경주 업데이트 함수 (매 프레임 실행)
+void updateRace() {
+  if (!isRacing) return;
+
+  boolean finish = false;
+
+  for (int i = 0; i < 5; i++) {
+    // 각 말마다 랜덤 속도로 전진! (빠르기 조절 가능)
+    horsePositions[i] += random(2, 10);
+
+    // 결승선(예: x=900) 통과 체크
+    if (horsePositions[i] > 950 && !finish) {
+      finish = true;
+      winnerHorse = i; // 우승마 확정
+    }
+  }
+
+  // 누군가 결승선에 도착했다면?
+  if (finish) {
+    isRacing = false;
+
+    // 결과 정산
+    if (winnerHorse == selectedHorse) {
+      int prize = 500000; // 5배 대박!
+      p.money += prize;
+      resultMessage = "축하합니다! " + (winnerHorse+1) + "번 말이 우승했습니다! (상금 +" + prize + ")";
+    } else {
+      resultMessage = "아쉽네요... " + (winnerHorse+1) + "번 말이 우승했습니다.";
+    }
+    resultShowTime = millis();
+    showRacingPopup = false; // 팝업 닫기 (결과 메시지는 draw에서 보여줌)
+  }
+}
+
 
 
 void keyPressed() {
@@ -320,6 +436,7 @@ void displayGoalResult() {
   }
   goalMessages.add("당신의 투자 결과는: " + investResult + "원");
 
+//----------------------------------------------------------
   // 부동산 가치 (각 부동산에 대해 30% +30, 20% -30)
   if (p.myHomePrice > 0) {
     int homeResult = 0;
@@ -331,13 +448,25 @@ void displayGoalResult() {
     } else {
       homeResult = 0;  // 변동 없음
     }
-    
+
     int finalPrice = p.myHomePrice + homeResult;
     goalMessages.add("당신의 " + p.myHomeName + " 부동산 가치는: " + finalPrice + "원");
   } else {
     goalMessages.add("구매한 부동산이 없습니다.");
   }
-  //p.UR_Goal = true;
+//--------------------------------------------------------------
+  if (p.pensionTotal > 0) {
+    // 1.2(20%) ~ 1.5(50%) 사이의 랜덤 배율 설정
+    float pensionRate = random(1.2, 1.5);
+    int finalPension = int(p.pensionTotal * pensionRate);
+
+    // 최종 자산에 연금 수령액 합산 (선택 사항)
+    // p.money += finalPension;
+
+    goalMessages.add("연금 수령! 납부액: " + p.pensionTotal + "원 -> 수령액: " + finalPension + "원");
+  } else {
+    goalMessages.add("납부한 연금이 없습니다.");
+  }
 }
 
 void triggerRandomEvent() {
@@ -371,66 +500,102 @@ void showResult(String msg) {
   resultShowTime = millis();
 }
 
-// [추가] 위치 인덱스(0~23)에 따라 이벤트를 실행하는 함수
-//void processBoardIndex(int index) {
-//  String locationName = boardMap[index];
+void processBoardIndex(int index) {
+  String locationName = boardMap[index];
 
-//  if (locationName == null) {
-//    println("Error: 해당 인덱스에 매핑된 지역이 없습니다 (" + index + ")");
-//    return;
-//  }
-//  println("이벤트 실행: " + locationName);
+  if (locationName == null) {
+    println("Error: 해당 인덱스에 매핑된 지역이 없습니다 (" + index + ")");
+    return;
+  }
+  println("이벤트 실행: " + locationName);
 
-//  // 각 지역 이름에 맞춰 팝업 띄우기
-//  if (locationName.equals("TAG_MARRY_001")) {
-//    showMarriagePopup = true;
-//  } else if (locationName.startsWith("TAG_JOB")) {
-//    showHiredPopup = true;
-//  } else if (locationName.startsWith("TAG_INVEST")) {
-//    showInvestPopup = true;
-//  } else if (locationName.startsWith("TAG_HOME")) {
-//    showHomePopup = true;
-//  } else if (locationName.startsWith("TAG_RANDOM_EVENT") || locationName.equals("EVENT")) {
-//    showEventPopup = true;
-//  } else if (locationName.equals("TAG_GOAL")) {
-//    println("골 지점 이벤트 발생");
-//    p.isFinished = true;
-//    displayGoalResult();
-//    showGoalPopup = true;
-    
-//    resultMessage = p.name + " 완주! 잠시 후 다음 턴으로 넘어갑니다.";
-//    resultShowTime = millis();
-//  } else if (locationName.equals("SALARY")) {
-//    processSalary();
-//  } else if (locationName.equals("ISLAND")) {
-//    p.isIslanded = true;
-//    showResult("무인도에 갇혔습니다! (3턴 휴식)");
-//  } else if (locationName.equals("SPACE")) {
-//    showResult("우주여행! (다음 턴에 원하는 곳으로 이동)");
-//  } else {
-//    showResult(locationName + "에 도착했습니다.");
-//  }
-//}
+  // ---------------------------------------------------------
+  // 1. 팝업이 뜨는 이벤트들 (결혼, 취업, 투자, 부동산, 랜덤이벤트)
+  // ---------------------------------------------------------
+  if (locationName.equals("TAG_MARRY_001")) {
+    showMarriagePopup = true;
+  } else if (locationName.startsWith("TAG_JOB")) { // JOB_001, 002, 003 통합 처리
+    showHiredPopup = true;
+  } else if (locationName.startsWith("TAG_INVEST")) { // INVEST_001, 002, 003 통합 처리
+    showInvestPopup = true;
+  } else if (locationName.startsWith("TAG_HOME_BUY")) { // HOME_BUY_001, 002 통합 처리
+    showHomePopup = true;
+  } else if (locationName.equals("TAG_EVENT")) {
+    showEventPopup = true;
+  } else if (locationName.equals("TAG_HORSE_RACE")) {
+    showRacingPopup = true;
+  }
+
+  // ---------------------------------------------------------
+  // 2. 게임 종료 및 특수 상태 (골인, 감옥)
+  // ---------------------------------------------------------
+  else if (locationName.equals("TAG_GOAL")) {
+    println("🎉 골 지점 도착! 완주 처리.");
+    p.isFinished = true;
+    displayGoalResult();
+    showGoalPopup = true;
+    resultMessage = p.name + " 완주! 잠시 후 다음 턴으로 넘어갑니다.";
+    resultShowTime = millis();
+  } else if (locationName.equals("TAG_JAIL")) {
+    p.isIslanded = true; // 무인도(감옥) 상태로 변경
+    p.islandTurns = 3;
+    showResult("형무소에 수감되었습니다! (3턴 휴식)");
+  }
+
+  // ---------------------------------------------------------
+  // 3. 새로 추가된 단순 이벤트들 (메시지만 띄움)
+  // (나중에 p.money += 10000; 같은 돈 계산 로직 넣으면 됨)
+  // ---------------------------------------------------------
+  else if (locationName.equals("TAG_BBQ_001")) {
+    showResult("바베큐 파티에 참석했습니다!");
+    p.money -= 3000;
+  } else if (locationName.equals("TAG_CHILDBIRTH")) {
+    showResult("축하합니다! 아이가 태어났습니다.");
+    p.childCount += 1;
+    int bonus = 5000;
+    p.money += bonus;
+  } else if (locationName.startsWith("TAG_PENSION")) { // PENSION_001, 002
+    int payAmount = 1500;
+    p.money -= payAmount;
+    p.pensionTotal += payAmount;
+    showResult("연금 " + payAmount + "원을 납부했습니다. (누적: " + p.pensionTotal + "원)");
+  } else if (locationName.equals("TAG_DISASTER")) {
+    showResult("재난 발생! 피해 복구비가 나갑니다.");
+    p.money -= 1000;
+  } else if (locationName.equals("TAG_TAX_OFFICE")) {
+    showResult("국세청입니다. 세금을 납부하세요.");
+  } else if (locationName.equals("TAG_ROBBING")) {
+    showResult("강도를 만났습니다! 지갑 조심하세요.");
+  } else if (locationName.equals("TAG_WALLET")) {
+    showResult("길에서 두툼한 지갑을 주웠습니다!");
+    p.money += 3000;
+  } else if (locationName.equals("TAG_TWINS")) {
+    showResult("경사났네! 쌍둥이가 태어났습니다.");
+    p.childCount += 2;           // 자녀 2명 추가
+    int bonus = 100000;          // 축하금 10만원 (두 배!)
+    p.money += bonus;
+  } else if (locationName.equals("TAG_DIVORCE")) {
+    showResult("이혼하게 되었습니다... (위자료 지불)");
+    p.money -= 1000;
+  } else if (locationName.equals("TAG_BOOK")) {
+    showResult("책을 출간했습니다! 인세 수익 획득.");
+    p.money += 1500;
+  }
+
+  // ---------------------------------------------------------
+  // 4. 그 외 처리되지 않은 태그들
+  // ---------------------------------------------------------
+  else {
+    showResult(locationName + "에 도착했습니다.");
+  }
+}
 
 
-//void keyTyped() {
-//  if (key == '1') {
-//    processTagEvent("TAG_JOB_001"); // 베이징 태그
-//  } else if (key == '2') {
-//    processTagEvent("TAG_JOB_002"); // 이스탄불  태그
-//  } else if (key=='3') {
-//    processTagEvent("TAG_MARRY_001");
-//  } else if (key=='4') {
-//    processTagEvent("D6793480");
-//  } else if (key=='5') {
-//    processTagEvent("12654F05");
-//  } else if (key=='6') {
-//    processTagEvent("BORAN5");
-//  } else if (key=='7') {
-//    processTagEvent("BORAN6");
-//  } else if (key == '8') {
-//    processTagEvent("BORAN7");
-//  } else if (key == '9') {
-//    processTagEvent("FD143480");
-//  }
-//}
+void keyTyped() {
+  if (key == '1') {
+    processTagEvent("E3563680"); // 베이징 태그
+  }
+  else if (key == '2'){
+    processTagEvent("BORAN7");
+  }
+}

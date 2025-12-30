@@ -73,6 +73,7 @@ class Player {
   boolean isMarried = false; //상태값
   boolean UR_Married = false; //중복 방지용
 
+  //취직 관련 변수
   String currentJob = "";
   int currentSalary = 0;
   boolean isHired = false; //상태값
@@ -82,7 +83,6 @@ class Player {
   boolean isInvest_01 = false;
   boolean UR_Invest_01 = false;
   int investAmount_01 = 0;
-
   boolean isInvest_02 = false;
   boolean UR_Invest_02 = false;
   int investAmount_02 = 0;
@@ -92,9 +92,14 @@ class Player {
   boolean UR_Home_01 = false;
   boolean isHome_02 = false;
   boolean UR_Home_02 = false;
-  
   int myHomePrice = 0;
   String myHomeName = "";
+  
+  //아이 관련 변수
+  int childCount = 0;
+  
+  //연금 관련 변수
+  int pensionTotal = 0;
   
   boolean isgoal = true;
   boolean UR_Goal = true;
@@ -105,7 +110,9 @@ class Player {
     this.name = name;
     this.money = startMoney;
     this.isFinished = false;
-     // ★★★ [중요] 이 줄이 없으면 무조건 널포인트 에러 남! ★★★
+    this.childCount = 0;
+    this.pensionTotal = 0;
+
     this.pathQueue = new ArrayList<PVector>(); 
     
     // 위치 초기화 (일단 0으로)

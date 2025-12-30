@@ -84,23 +84,18 @@ void processRfidEvent(String data) {
 
 //태그 기반 이벤트 처리
 void processTagEvent(String uid) {
-  RfidInfo event = uidNameMap.get(uid);
-  println(event);
-  if (uid.equals("TAG_MARRY_001")) {
-    showMarriagePopup = true;
-  } else if (uid.equals("TAG_JOB_001") || uid.equals("TAG_JOB_002")) {
-    showHiredPopup = true;
-  } else if (uid.equals("TAG_INVEST_001") && !p.isInvest_01) {
-    showInvestPopup = true;
-  } else if (uid.equals("TAG_INVEST_002") && !p.isInvest_02) {
-    showInvestPopup = true;
-  } else if (uid.equals("TAG_HOME_001") || uid.equals("TAG_HOME_002")) {
-    showHomePopup = true;
-  } else if (uid.equals("TAG_RANDOM_EVENT_001") || uid.equals("TAG_RANDOM_EVENT_002") ||  uid.equals("TAG_RANDOM_EVENT_003")) {
-    showEventPopup = true;
-  } else if (uid.equals("TAG_GOAL")) {
-    showGoalPopup = true;
+  // 1. 맵에 등록된 태그인지 확인
+  if (uidNameMap.containsKey(uid)) {
+    RfidInfo info = uidNameMap.get(uid);
+    
+    println(">> [태그 인식 성공] " + info.name + " (인덱스: " + info.boardIndex + ")");
+    
+    // 2. 해당 위치의 이벤트(processBoardIndex)를 실행!
+    // (functions.pde에 있는 함수를 호출합니다)
+    processBoardIndex(info.boardIndex);
+    
   } else {
-    println("알 수 없는 태그");
+    // 등록되지 않은 태그일 경우
+    println("!! 알 수 없는 태그 (UID: " + uid + ")");
   }
 }
