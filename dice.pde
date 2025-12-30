@@ -137,8 +137,8 @@ void handleDicePhysics() {
       showDice = false;
       diceEndTimerStarted = false;  // 다음 주사위 굴림을 위해 초기화
 
-      println(">> 3초 경과! 팝업 실행");
-      processBoardIndex(p.position);
+      println(">> 이동중");
+
     }
   }
 }

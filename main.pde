@@ -15,8 +15,8 @@ void setup() {
 
   //connectArduino();
 
-  yesButton = new Button(730, 400, 100, 40, "YES", -1);
-  noButton = new Button(870, 400, 100, 40, "NO", -1);
+  yesButton = new Button(690, 400, 100, 40, "YES", -1);
+  noButton = new Button(810, 400, 100, 40, "NO", -1);
   rollButton = new Button(60, 600, 200, 60, "ROLL", -1);
 
   messageX = 800;
@@ -88,7 +88,7 @@ void setup() {
 void draw() {
 
   background(#fafafa);
-  imageMode(CORNER);
+  //imageMode(CORNER);
 
   if (boardImage != null) {
     // initBoardPositions에서 계산한 boardW, boardH, startX, startY 값과 동일하게
@@ -96,7 +96,7 @@ void draw() {
     int boardW = 820;
     int boardH = 620;
     int startX = sidebarWidth + (width - sidebarWidth - boardW) / 2;
-    int startY = (height - boardH) / 2 - 30;
+    int startY = (height - boardH) / 2;
 
     image(boardImage, startX, startY, boardW, boardH);
   }
@@ -234,6 +234,7 @@ void draw() {
   if (showHiredPopup) {
     if (jobButtons.isEmpty()) initJobButtons();
     fill(0);
+    text("취업을 축하합니다! 직업을 골라주세요", messageX, messageY);
     drawJobButtons(); // (주의: 버튼 위치도 initJobButtons에서 바꿔야 함)
   }
 
