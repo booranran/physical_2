@@ -1,4 +1,6 @@
-import processing.serial.*;
+
+Client myClient;
+
 
 //Serial myPort;
 String resultMessage = "";

@@ -62,6 +62,7 @@ class Player {
   boolean isIslanded;
   int islandTurns;
   int position;
+  int finalScore = 0;
   
     // 시각화 변수
   float visualX, visualY;

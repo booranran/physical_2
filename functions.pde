@@ -22,6 +22,7 @@ Player nextTurn() {
   if (allFinished) {
     println(">> [GAME OVER] 모든 플레이어 완주! 게임을 종료합니다.");
     // 여기서 최종 랭킹을 보여주거나 게임 종료 화면으로 전환
+    displayRanking();
     showGoalPopup = true; // 최종 결과창 유지
     return p;
   }
@@ -35,6 +36,30 @@ Player nextTurn() {
     println(">> 턴 변경: " + p.name + " (현재 " + (currentPlayer+1) + "P)");
     return p;
   }
+}
+
+void displayRanking() {
+  goalMessages.clear();
+  goalMsgIndex = 0;
+  goalMsgStartTime = millis();
+  
+  goalMessages.add("=== [최종 경기 결과] ===");
+  
+  int maxScore = -999999999;
+  String winnerName = "";
+  
+  // 모든 플레이어의 점수를 띄워주고 1등을 찾음
+  for (Player player : players) {
+    goalMessages.add(player.name + ": " + player.finalScore + "원");
+    
+    if (player.finalScore > maxScore) {
+      maxScore = player.finalScore;
+      winnerName = player.name;
+    }
+  }
+  
+  goalMessages.add("--------------------------------");
+  goalMessages.add("최종 우승: " + winnerName + "!");
 }
 
 void initBoardPositions() {
@@ -416,57 +441,92 @@ void displayGoalResult() {
   goalMessages.clear();
   goalMsgIndex = 0;
   goalMsgStartTime = millis();
-  goalMessages.add("나의의 현재 자산은: " + p.money + "원");
 
-  //투자 결과 (각 투자금에 대해 50% 확률 +50, 나머지 -50)
-  int investResult = 0;
+  // 1. 현재 보유 현금
+  int finalTotalAsset = p.money; // 최종 자산 계산용 변수 (여기서부터 누적 시작)
+  goalMessages.add("현재 보유 현금: " + p.money + "원");
+
+  // ----------------------------------------------------------
+  // 2. 투자 결과 (원금 + 수익/손실)
+  // ----------------------------------------------------------
+  int investProfit = 0; // 순수익/손실
+  int investPrincipal = 0; // 투자 원금 합계
+
+  if (p.isInvest_01) investPrincipal += p.investAmount_01;
+  if (p.isInvest_02) investPrincipal += p.investAmount_02;
+
+  // 1번 투자 상품
   if (p.isInvest_01) {
-    if (random(1) < 0.5) {
-      investResult += p.investAmount_01 * 0.5;  // 50% 수익
-    } else {
-      investResult -= p.investAmount_01 * 0.5;
-    }
+    if (random(1) < 0.5) investProfit += int(p.investAmount_01 * 0.5); // 50% 수익
+    else investProfit -= int(p.investAmount_01 * 0.5); // 50% 손실
   }
+  // 2번 투자 상품
   if (p.isInvest_02) {
-    if (random(1) < 0.5) {
-      investResult += p.investAmount_02 * 0.5;
-    } else {
-      investResult -= p.investAmount_02 * 0.5;
-    }
+    if (random(1) < 0.5) investProfit += int(p.investAmount_02 * 0.5);
+    else investProfit -= int(p.investAmount_02 * 0.5);
   }
-  goalMessages.add("당신의 투자 결과는: " + investResult + "원");
 
-//----------------------------------------------------------
-  // 부동산 가치 (각 부동산에 대해 30% +30, 20% -30)
+  int finalStockValue = investPrincipal + investProfit; // 주식 최종 가치
+  finalTotalAsset += finalStockValue; // ★ 최종 자산에 추가
+
+  goalMessages.add("주식 평가 금액: " + finalStockValue + "원 (손익: " + investProfit + "원)");
+
+  // ----------------------------------------------------------
+  // 3. 부동산 가치 (각 부동산에 대해 30% 상승/하락)
+  // ----------------------------------------------------------
+  int finalHomeValue = 0;
+
   if (p.myHomePrice > 0) {
-    int homeResult = 0;
+    int homeFluctuation = 0;
     float r = random(1);
-    if (r < 0.3) {
-      homeResult = int(p.myHomePrice * 0.3);  // 30% 상승
-    } else if (r < 0.5) {
-      homeResult = -int(p.myHomePrice * 0.3);  // 30% 하락
-    } else {
-      homeResult = 0;  // 변동 없음
-    }
 
-    int finalPrice = p.myHomePrice + homeResult;
-    goalMessages.add("당신의 " + p.myHomeName + " 부동산 가치는: " + finalPrice + "원");
+    if (r < 0.3) homeFluctuation = int(p.myHomePrice * 0.3);       // 30% 상승
+    else if (r < 0.5) homeFluctuation = -int(p.myHomePrice * 0.3); // 30% 하락
+    else homeFluctuation = 0;                                      // 유지
+
+    finalHomeValue = p.myHomePrice + homeFluctuation;
+    goalMessages.add("부동산 평가 금액: " + finalHomeValue + "원 (" + p.myHomeName + ")");
   } else {
-    goalMessages.add("구매한 부동산이 없습니다.");
+    goalMessages.add("보유 부동산 없음: 0원");
   }
-//--------------------------------------------------------------
+
+  finalTotalAsset += finalHomeValue; // ★ 최종 자산에 추가
+
+  // ----------------------------------------------------------
+  // 4. 연금 수령액 (납부액 + 이자)
+  // ----------------------------------------------------------
+  int finalPensionValue = 0;
+
   if (p.pensionTotal > 0) {
-    // 1.2(20%) ~ 1.5(50%) 사이의 랜덤 배율 설정
-    float pensionRate = random(1.2, 1.5);
-    int finalPension = int(p.pensionTotal * pensionRate);
+    float pensionRate = random(1.2, 1.5); // 1.2 ~ 1.5배 뻥튀기
+    finalPensionValue = int(p.pensionTotal * pensionRate);
 
-    // 최종 자산에 연금 수령액 합산 (선택 사항)
-    // p.money += finalPension;
-
-    goalMessages.add("연금 수령! 납부액: " + p.pensionTotal + "원 -> 수령액: " + finalPension + "원");
+    goalMessages.add("연금 수령액: " + finalPensionValue + "원 (납부액: " + p.pensionTotal + ")");
   } else {
-    goalMessages.add("납부한 연금이 없습니다.");
+    goalMessages.add("연금 수령액 없음: 0원");
   }
+
+  finalTotalAsset += finalPensionValue; // ★ 최종 자산에 추가
+
+  // ----------------------------------------------------------
+  // 5. 자녀 양육 보너스 (1명당 1500원)
+  // ----------------------------------------------------------
+  int childBonus = p.childCount * 1500;
+
+  if (p.childCount > 0) {
+    goalMessages.add("자녀 지원금: " + childBonus + "원 (" + p.childCount + "명 x 1500원)");
+  } else {
+    goalMessages.add("자녀 지원금 없음");
+  }
+
+  finalTotalAsset += childBonus; // ★ 최종 자산에 추가
+
+  // ----------------------------------------------------------
+  // 6. 최종 합계 출력
+  // ----------------------------------------------------------
+  goalMessages.add("--------------------------------");
+  goalMessages.add("★ 최종 총 자산: " + finalTotalAsset + "원 ★");
+  p.finalScore = finalTotalAsset;
 }
 
 void triggerRandomEvent() {
@@ -581,7 +641,6 @@ void processBoardIndex(int index) {
     showResult("책을 출간했습니다! 인세 수익 획득.");
     p.money += 1500;
   }
-
   // ---------------------------------------------------------
   // 4. 그 외 처리되지 않은 태그들
   // ---------------------------------------------------------
@@ -593,9 +652,8 @@ void processBoardIndex(int index) {
 
 void keyTyped() {
   if (key == '1') {
-    processTagEvent("E3563680"); // 베이징 태그
-  }
-  else if (key == '2'){
+    processTagEvent("7EF63380"); // 베이징 태그
+  } else if (key == '2') {
     processTagEvent("BORAN7");
   }
 }

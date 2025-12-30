@@ -98,13 +98,25 @@ void handleDicePhysics() {
       currentAngle.set(targetAngle);
       rollEnded = true;
       println("주사위 결과: " + diceNumber);
-      //myPort.write(diceNumber + "\n");
-      systemStatus = "주사위 " + diceNumber + " 전송 완료";
+      int nextPosition = p.position + diceNumber;
 
-      p.position = (p.position + diceNumber) % 24; // 24칸을 넘어가면 0부터 다시 시작
+      if (nextPosition > 23) {
+        p.position = 0; // 골인 지점에 강제 정차
+        println("골인 지점 도달!");
+      } else {
+        p.position = nextPosition;
+      }
+
       println(p.name + " 위치 이동 -> " + p.position + " (" + boardMap[p.position] + ")");
 
       systemStatus = "주사위 " + diceNumber + " 전송 완료";
+
+      if (myClient.active()) {
+        myClient.write(diceNumber); // 숫자 그대로 전송 (예: 3)
+        println("아두이노로 " + diceNumber + " 전송 완료!");
+      } else {
+        println("아두이노 연결 안 됨, 전송 실패");
+      }
     }
   }
 

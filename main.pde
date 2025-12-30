@@ -1,13 +1,14 @@
 import java.util.Collections;
-import processing.serial.*;
+import processing.net.*;
+
 
 void setup() {
   size(1280, 720, P3D);
   background(#fafafa);
   textureMode(NORMAL);
 
+  myClient = new Client(this, "172.20.10.2", 8888);
   boardImage = loadImage("board.png"); // data 폴더에 이미지 넣어야 함
-
 
   textAlign(CENTER, CENTER);
   textSize(30);
@@ -66,7 +67,6 @@ void setup() {
     }
   }
   initBoardPositions();
-
 
   if (showGoalPopup) {
     displayGoalResult();
@@ -135,23 +135,20 @@ void draw() {
 
     popStyle();
     // ------------------------------------------------
-    
+
     if (p.isIslanded && resultShowTime == -1) {
       p.islandTurns--; // 1턴 차감
-      
+
       // 아직 남은 턴이 있다면 (2, 1, 0) -> 스킵
       if (p.islandTurns >= 0) {
         resultMessage = p.name + "님은 수감 중입니다. (남은 턴: " + (p.islandTurns + 1) + ")";
         resultShowTime = millis(); // 메시지 띄우고 2초 뒤 nextTurn() 자동 실행
-      } 
-      else {
+      } else {
         // 턴 다 채움 -> 석방!
         p.isIslanded = false;
-        // 메시지 없이 바로 롤 버튼이 뜨게 하거나, "석방" 메시지를 띄울 수 있음
-        // 여기서는 바로 게임 진행하도록 함
       }
     }
-    
+
     // 롤 버튼 표시
     if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup
       && !showHomePopup && !showGoalPopup && !showRacingPopup && resultShowTime == -1) {
@@ -165,7 +162,7 @@ void draw() {
 
       int waitTime = 2000;
       if (showGoalPopup) {
-        waitTime = 5000;  // 골인(파이널) 대기 시간: 10초 (원하는 만큼 늘리세요)
+        waitTime = 8000;  // 골인(파이널) 대기 시간: 10초 (원하는 만큼 늘리세요)
         text(resultMessage, messageX, messageY + 100);
       } else {
         text(resultMessage, messageX, messageY);
@@ -178,7 +175,6 @@ void draw() {
 
         // 골인 팝업이 켜져 있었다면 끄기 (다음 사람을 위해)
         if (showGoalPopup) {
-
           showGoalPopup = false;
         }
 
@@ -193,7 +189,6 @@ void draw() {
 
   // 2. 결혼 팝업
   if (showMarriagePopup) {
-
     fill(0);
     text("결혼하시겠습니까?", messageX, messageY);
     yesButton.display();
@@ -247,7 +242,7 @@ void draw() {
     triggerRandomEvent();
     showEventPopup = false;
   }
-  
+
   if (showRacingPopup) {
     drawRacingPopup();
   }
@@ -257,7 +252,7 @@ void draw() {
 
     fill(0);
     for (int i = 0; i <= goalMsgIndex && i < goalMessages.size(); i++) {
-      text(goalMessages.get(i), messageX, messageY - 30 + i * 30); // x좌표 160
+      text(goalMessages.get(i), messageX, messageY - 120 + i * 30); // x좌표 160
     }
     if (millis() - goalMsgStartTime > 1000) {
       goalMsgIndex++;
