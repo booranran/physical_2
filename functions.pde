@@ -120,6 +120,8 @@ void initBoardPositions() {
   int startX = sidebarWidth + (width - sidebarWidth - boardW) / 2;
   int startY = (height - boardH) / 2;
 
+  int playerOffsetY = 30;
+
   // 2. 24개 칸 좌표 계산
   for (int i = 0; i < 24; i++) {
     float bx = 0, by = 0;
@@ -174,7 +176,7 @@ void initBoardPositions() {
       bh = cellW;
     }
     // 중심 좌표 저장
-    boardPositions[i] = new PVector(bx + bw / 2.0, by + bh / 2.0);
+    boardPositions[i] = new PVector(bx + bw / 2.0, (by + bh / 2.0) + playerOffsetY);
   }
 }
 
@@ -430,18 +432,18 @@ void updateRace() {
 
 void movePlayer(int steps) {
   int currentPos = p.position;
-  
+
   // 이동할 칸 수만큼 반복하면서 경로 저장
   for (int i = 1; i <= steps; i++) {
     int nextIndex = (currentPos + i) % 24; // 24는 전체 칸 수
-    
+
     // 각 칸의 중심 좌표 가져오기 (이미 initBoardPositions에서 계산됨)
     PVector dest = boardPositions[nextIndex];
-    
+
     // 이동 대기열에 추가
     p.pathQueue.add(new PVector(dest.x, dest.y));
   }
-  
+
   // 데이터상 위치는 미리 업데이트
   p.position = (currentPos + steps) % 24;
   println("이동 예약 완료: " + steps + "칸");
