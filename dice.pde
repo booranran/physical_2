@@ -50,7 +50,7 @@ void drawDiceOverlay() {
   pushMatrix();
   translate(messageX, messageY, 0); // 화면 중앙으로 이동
   ambientLight(150, 150, 150);
-  directionalLight(100, 255, 255, -0.5, 0.5, -1);
+  directionalLight(255, 255, 255, -0.5, 0.5, -1);
 
   // 회전 적용
   if (rolling) {
@@ -98,14 +98,21 @@ void handleDicePhysics() {
       currentAngle.set(targetAngle);
       rollEnded = true;
       println("주사위 결과: " + diceNumber);
-      int nextPosition = p.position + diceNumber;
+      //int nextPosition = p.position + diceNumber;
 
-      if (nextPosition > 23) {
-        p.position = 0; // 골인 지점에 강제 정차
-        println("골인 지점 도달!");
-      } else {
-        p.position = nextPosition;
-      }
+      //if (nextPosition >= 24) {
+      //  p.lap++;
+      //  println(">>" + p.lap + "바퀴째 돌파!");
+      //}
+      //if (p.lap >= 2) {
+      //  p.position = 0; // 골인 지점(Start/Goal)에 멈춤
+      //  // (여기서 골인 팝업 등은 functions.pde의 processBoardIndex에서 처리됨)
+      //} else {
+      //  // 4. 아직 완주 안 했으면 -> 나머지 연산(%)으로 0~23 사이 위치 유지
+      //  p.position = nextPosition % 24;
+      //}
+      
+      movePlayer(diceNumber);
 
       println(p.name + " 위치 이동 -> " + p.position + " (" + boardMap[p.position] + ")");
 

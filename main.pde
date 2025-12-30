@@ -68,6 +68,14 @@ void setup() {
   }
   initBoardPositions();
 
+  if (boardPositions[0] != null) {
+    for (Player player : players) {
+      player.visualX = boardPositions[0].x;
+      player.visualY = boardPositions[0].y;
+    }
+  }
+
+
   if (showGoalPopup) {
     displayGoalResult();
   }
@@ -79,7 +87,8 @@ void setup() {
 
 void draw() {
 
-  background(255);
+  background(#fafafa);
+  imageMode(CORNER);
 
   if (boardImage != null) {
     // initBoardPositions에서 계산한 boardW, boardH, startX, startY 값과 동일하게
@@ -87,10 +96,11 @@ void draw() {
     int boardW = 820;
     int boardH = 620;
     int startX = sidebarWidth + (width - sidebarWidth - boardW) / 2;
-    int startY = (height - boardH) / 2;
+    int startY = (height - boardH) / 2 - 30;
 
     image(boardImage, startX, startY, boardW, boardH);
   }
+  drawPlayers();
 
   // 기존 그리기 코드
   // [main.pde]의 draw() 내부 수정
@@ -132,6 +142,19 @@ void draw() {
     // 결혼 여부
     String marryText = p.isMarried ? "기혼" : "미혼";
     text("상태: " + marryText, 40, startY + gap*3);
+
+    // 1. 자녀 수
+    text("자녀: " + p.childCount + "명", 40, startY + gap*4);
+
+    // 2. 주식 투자금 (따로따로 표시)
+    // 주식 1
+    String stock1 = (p.investAmount_01 > 0) ? nfc(p.investAmount_01) + "원" : "미보유";
+    text("주식1: " + stock1, 40, startY + gap*5);
+
+    // 주식 2
+    String stock2 = (p.investAmount_02 > 0) ? nfc(p.investAmount_02) + "원" : "미보유";
+    text("주식2: " + stock2, 40, startY + gap*6);
+
 
     popStyle();
     // ------------------------------------------------

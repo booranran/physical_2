@@ -43,6 +43,7 @@ class Button {
 
   void display() {
     fill(isMouseOver() ? 180 : 200);
+    noStroke();
     rect(x, y, w, h, 5);
     fill(0);
     textSize(16);
@@ -64,13 +65,14 @@ class Player {
   int position;
   int finalScore = 0;
   int turnCount = 0;
-  
-    // 시각화 변수
+  int lap = 0;
+
+  // 시각화 변수
   float visualX, visualY;
   ArrayList<PVector> pathQueue; // ★ 변수 선언
   boolean isMoving = false;
   float moveSpeed = 0.1;
-  
+
   //결혼 관련 변수
   boolean isMarried = false; //상태값
   boolean UR_Married = false; //중복 방지용
@@ -96,13 +98,13 @@ class Player {
   boolean UR_Home_02 = false;
   int myHomePrice = 0;
   String myHomeName = "";
-  
+
   //아이 관련 변수
   int childCount = 0;
-  
+
   //연금 관련 변수
   int pensionTotal = 0;
-  
+
   boolean isgoal = true;
   boolean UR_Goal = true;
   boolean isFinished = false;
@@ -115,24 +117,25 @@ class Player {
     this.childCount = 0;
     this.pensionTotal = 0;
     this.turnCount = 0;
+    this.lap = 0;
 
-    this.pathQueue = new ArrayList<PVector>(); 
-    
+    this.pathQueue = new ArrayList<PVector>();
+
     // 위치 초기화 (일단 0으로)
     this.visualX = 0;
     this.visualY = 0;
-    
+
     this.myHomePrice = 0;
-    this.myHomeName = "";   
+    this.myHomeName = "";
   }
-  
+
   void updateAndDraw() {
     if (pathQueue.size() > 0) {
       isMoving = true;
       PVector target = pathQueue.get(0);
       visualX = lerp(visualX, target.x, moveSpeed);
       visualY = lerp(visualY, target.y, moveSpeed);
-      
+
       if (dist(visualX, visualY, target.x, target.y) < 2.0) {
         visualX = target.x;
         visualY = target.y;
@@ -147,22 +150,32 @@ class Player {
 
     // 경로 그리기 (빨간 점선)
     if (pathQueue.size() > 0) {
-      stroke(255, 100, 100); strokeWeight(3); noFill();
+      stroke(255, 100, 100);
+      strokeWeight(3);
+      noFill();
       beginShape();
       vertex(visualX, visualY);
       for (PVector p : pathQueue) vertex(p.x, p.y);
       endShape();
     }
-    
+
     drawAvatar(); // 내 자동차 그리기
   }
 
   void drawAvatar() {
-    rectMode(CENTER); noStroke();
-    if (id == 1) fill(50, 50, 255); else fill(255, 50, 50);
+    pushStyle(); // ★ 스타일 설정 저장 (이 안에서만 적용됨)
+
+    rectMode(CENTER);
+    noStroke();
+    if (id == 1) fill(50, 50, 255);
+    else fill(255, 50, 50);
     rect(visualX, visualY, 30, 20, 5);
-    fill(0); textAlign(CENTER); textSize(12);
+
+    fill(0);
+    textAlign(CENTER);
+    textSize(12);
     text("P" + id, visualX, visualY);
+
+    popStyle(); // ★ 스타일 설정 복구 (rectMode가 다시 CORNER로 돌아감)
   }
-  
 }

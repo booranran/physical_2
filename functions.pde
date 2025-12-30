@@ -1,51 +1,82 @@
-Player nextTurn() {
-  int attempts = 0; // 무한루프 방지용
-  // int originalPlayer = currentPlayer; // (필요 없음)
+// [functions.pde] nextTurn 함수 수정
 
-  // 1. 다음 플레이어 찾기 (아직 안 끝난 사람)
+Player nextTurn() {
+  int attempts = 0;
+
+  // 1. 다음 플레이어 찾기
   do {
     currentPlayer = (currentPlayer + 1) % players.length;
     p = players[currentPlayer];
     attempts++;
   } while (p.isFinished && attempts < players.length);
 
-  // 2. ★ 핵심 수정: 모든 플레이어가 끝났는지 확인하는 로직 분리
+  // 2. 모든 플레이어 완주 체크
   boolean allFinished = true;
   for (Player player : players) {
     if (!player.isFinished) {
       allFinished = false;
-      break; // 안 끝난 사람 발견하면 즉시 검사 중단
+      break;
     }
   }
 
-  // 3. 만약 모두 끝났다면 -> 게임 종료 처리
   if (allFinished) {
-    println(">> [GAME OVER] 모든 플레이어 완주! 게임을 종료합니다.");
-    displayRanking();     // 랭킹 보여주기
-    showGoalPopup = true; // 결과창 띄우기
+    println(">> [GAME OVER] 모든 플레이어 완주!");
+    displayRanking();
+    showGoalPopup = true;
     return p;
   }
 
-  // 4. 게임이 안 끝났다면 -> 이번 턴 플레이어(p)의 교육비/턴 처리
-  // (이 로직이 for문 밖으로 나와야 합니다!)
+  // -----------------------------------------------------------
+  // ★ [통합 정산] 3턴마다 월급(확률/제한 적용) & 교육비 처리
+  // -----------------------------------------------------------
   if (!p.isFinished) {
     p.turnCount++;
 
-    // 3턴마다 && 자녀가 있을 경우
-    if (p.turnCount % 3 == 0 && p.childCount > 0) {
-      int eduFee = p.childCount * 1000;
-      p.money -= eduFee;
+    // 3턴마다 (3, 6, 9...) 정산
+    if (p.turnCount % 3 == 0) {
+      String eventMsg = "[정기 결산] ";
+      boolean eventHappened = false;
 
-      // 팝업 메시지 설정
-      resultMessage = "[교육비] 자녀 " + p.childCount + "명 교육비 " + eduFee + "원 차감!";
-      resultShowTime = millis();
+      // 1) 월급 지급 로직 (processSalary 내용 통합)
+      // 직업이 있고 & 월급 횟수 제한을 넘지 않았을 때
+      if (p.isHired && salaryCount < salaryLimit) {
+        boolean getPaid = true;
 
-      // ★ 메시지가 떠 있는 동안 턴 넘어가지 않게 잠금
-      isTurnChange = false;
+        // 스타트업 CEO는 50% 확률로 월급 실패
+        if (p.currentJob.equals("스타트업 CEO")) {
+          if (random(1) >= 0.5) getPaid = false;
+        }
+
+        if (getPaid) {
+          p.money += p.currentSalary;
+          salaryCount++; // 월급 횟수 증가 (전체 공유 변수라면 주의 필요)
+          eventMsg += p.currentJob + " 월급 +" + p.currentSalary + "원 ";
+        } else {
+          eventMsg += "스타트업 월급 실패 "; // CEO 실패 시 메시지
+        }
+        eventHappened = true;
+      }
+
+      // 2) 교육비 차감 (자녀가 있을 경우)
+      if (p.childCount > 0) {
+        int eduFee = p.childCount * 1000;
+        p.money -= eduFee;
+
+        // 월급 메시지가 있으면 줄바꿈이나 구분자 추가
+        if (eventHappened) eventMsg += "| ";
+        eventMsg += "교육비 -" + eduFee + "원";
+        eventHappened = true;
+      }
+
+      // 이벤트가 하나라도 있었다면 팝업 띄우기
+      if (eventHappened) {
+        resultMessage = eventMsg;
+        resultShowTime = millis();
+        isTurnChange = false; // 팝업 보는 동안 턴 넘어가지 않게 잠금
+      }
     }
   }
 
-  // 5. 턴 변경 완료 로그 및 리턴
   println(">> 턴 변경: " + p.name + " (현재 " + (currentPlayer+1) + "P)");
   return p;
 }
@@ -394,6 +425,27 @@ void updateRace() {
     resultShowTime = millis();
     showRacingPopup = false; // 팝업 닫기 (결과 메시지는 draw에서 보여줌)
   }
+}
+
+// functions.pde 맨 아래에 추가
+
+void movePlayer(int steps) {
+  int currentPos = p.position;
+  
+  // 이동할 칸 수만큼 반복하면서 경로 저장
+  for (int i = 1; i <= steps; i++) {
+    int nextIndex = (currentPos + i) % 24; // 24는 전체 칸 수
+    
+    // 각 칸의 중심 좌표 가져오기 (이미 initBoardPositions에서 계산됨)
+    PVector dest = boardPositions[nextIndex];
+    
+    // 이동 대기열에 추가
+    p.pathQueue.add(new PVector(dest.x, dest.y));
+  }
+  
+  // 데이터상 위치는 미리 업데이트
+  p.position = (currentPos + steps) % 24;
+  println("이동 예약 완료: " + steps + "칸");
 }
 
 
