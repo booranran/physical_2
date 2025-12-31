@@ -111,18 +111,21 @@ void handleDicePhysics() {
       //  // 4. 아직 완주 안 했으면 -> 나머지 연산(%)으로 0~23 사이 위치 유지
       //  p.position = nextPosition % 24;
       //}
-      
+
       movePlayer(diceNumber);
 
       println(p.name + " 위치 이동 -> " + p.position + " (" + boardMap[p.position] + ")");
 
-      systemStatus = "주사위 " + diceNumber + " 전송 완료";
-
-      if (myClient.active()) {
-        myClient.write(diceNumber); // 숫자 그대로 전송 (예: 3)
-        println("아두이노로 " + diceNumber + " 전송 완료!");
+      if (currentPlayer == 0) {
+        systemStatus = "주사위 " + diceNumber + " 전송 완료";
+        if (myClient.active()) {
+          myClient.write(diceNumber);
+          println("아두이노로 " + diceNumber + " 전송 완료!");
+        } else {
+          println("아두이노 연결 안 됨, 전송 실패");
+        }
       } else {
-        println("아두이노 연결 안 됨, 전송 실패");
+        println(">> Player 2(봇) 턴이므로 하드웨어 전송 스킵");
       }
     }
   }
@@ -138,7 +141,6 @@ void handleDicePhysics() {
       diceEndTimerStarted = false;  // 다음 주사위 굴림을 위해 초기화
 
       println(">> 이동중");
-
     }
   }
 }

@@ -175,7 +175,20 @@ void draw() {
     // 롤 버튼 표시
     if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup
       && !showHomePopup && !showGoalPopup && !showRacingPopup && resultShowTime == -1) {
-      rollButton.display();
+      if (currentPlayer == 0) {
+        rollButton.display();
+      }
+      // ★ [추가] Player 2(봇)일 때는 자동으로 주사위 굴리기
+      else {
+        fill(0);
+        textSize(20);
+        textAlign(CENTER);
+        text("봇(Player 2)이 주사위를 굴립니다...", messageX, 600);
+
+        // 딜레이 없이 바로 굴리거나, 자연스러움을 위해 약간의 조건을 줄 수 있음
+        // 여기선 즉시 실행 (startRoll 함수 내부에서 중복 실행 방지됨)
+        startRoll();
+      }
     }
     if (resultShowTime != -1) {
       // 1. 메시지 큼직하게 출력 (화면 중앙 하단)
@@ -234,7 +247,12 @@ void draw() {
   if (showHiredPopup) {
     if (jobButtons.isEmpty()) initJobButtons();
     fill(0);
-    text("취업을 축하합니다! 직업을 골라주세요", messageX, messageY);
+    if (p.isHired) {
+      text("새로운 직업으로 이직하시겠습니까?", messageX, messageY);
+      noButton.display(); // "이직 안함" 버튼 표시
+    } else {
+      text("취업을 축하합니다! 직업을 골라주세요", messageX, messageY);
+    }
     drawJobButtons(); // (주의: 버튼 위치도 initJobButtons에서 바꿔야 함)
   }
 

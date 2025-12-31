@@ -266,6 +266,9 @@ void mousePressed() {
   }
 
   if (showHiredPopup) {
+    boolean actionTaken = false;
+
+    // 1. 직업 버튼을 눌렀을 때 (취업 또는 이직)
     for (Button btn : jobButtons) {
       if (btn.isMouseOver()) {
         p.currentJob = btn.label;
@@ -273,13 +276,21 @@ void mousePressed() {
         p.UR_Hired = true;
         p.currentSalary = salary[btn.idx];
 
-        resultMessage = p.currentJob + "로 취업! 월급: " + p.currentSalary + "원";
+        resultMessage = p.currentJob + "(으)로 직업 변경! 월급: " + p.currentSalary + "원";
         resultShowTime = millis();
         showHiredPopup = false;
-
         jobButtons.clear();
+        actionTaken = true;
         break;
       }
+    }
+
+    // ★ [추가] "이직 안함" (NO 버튼) 클릭 처리
+    if (!actionTaken && p.isHired && noButton.isMouseOver()) {
+      resultMessage = "이직하지 않고 현재 직업(" + p.currentJob + ")을 유지합니다.";
+      resultShowTime = millis();
+      showHiredPopup = false;
+      jobButtons.clear();
     }
   }
 
