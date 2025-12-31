@@ -174,7 +174,7 @@ void draw() {
 
     // 롤 버튼 표시
     if (!showDice && !showMarriagePopup && !showHiredPopup && !showInvestPopup
-      && !showHomePopup && !showGoalPopup && !showRacingPopup && resultShowTime == -1) {
+      && !showHomePopup && !showGoalPopup && !showRacingPopup && resultShowTime == -1 && !p.isMoving) {
       if (currentPlayer == 0) {
         rollButton.display();
       }
